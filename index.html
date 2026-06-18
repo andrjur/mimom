@@ -461,6 +461,7 @@
     <div class="logo">НейроИндыков</div>
     <ul class="nav-links">
         <li><a href="#about">Обо мне</a></li>
+        <li><a href="pereSBorka.html">Юля</a></li>
         <li><a href="#services">Услуги</a></li>
         <li><a href="#how">Как я работаю</a></li>
         <li><a href="#blog">Блог</a></li>
@@ -567,15 +568,17 @@
                 <span class="period">/ неделя</span>
             </div>
         </div>
+        <a href="pereSBorka.html" style="text-decoration:none; color:inherit;">
         <div class="service-card fade-up" style="transition-delay: 0.3s;">
             <div class="service-icon">🌿</div>
             <h3>Бережно-перепрошивка</h3>
-            <p>Индивидуальное сопровождение. Глубокая медленная проработка выгорания парой специалистов.</p>
+            <p>Индивидуальное сопровождение. Глубокая медленная проработка выгорания парой специалистов. Подробнее →</p>
             <div class="service-price">
                 <span class="amount">от 7 000 ₽</span>
                 <span class="period">/ неделя</span>
             </div>
         </div>
+        </a>
         <div class="service-card fade-up span-2" style="transition-delay: 0.4s;">
             <div class="service-icon">👑</div>
             <h3>Системное наставничество</h3>
@@ -825,6 +828,39 @@
     </div>
 </section>
 
+<!-- SVG WAVE -->
+<div class="svg-footer" style="width:100%; overflow:hidden; margin-top:-1px;">
+    <svg viewBox="0 0 1440 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display:block; width:100%; height:100px;">
+        <defs>
+            <linearGradient id="waveGradIdx" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#C4663A;stop-opacity:0.25"/>
+                <stop offset="50%" style="stop-color:#D4A843;stop-opacity:0.15"/>
+                <stop offset="100%" style="stop-color:#C4663A;stop-opacity:0.25"/>
+            </linearGradient>
+        </defs>
+        <path fill="url(#waveGradIdx)" opacity="0.5">
+            <animate attributeName="d"
+                values="M0,120 C360,180 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,200 L0,200 Z;
+                        M0,100 C360,40 720,160 1080,80 C1260,50 1380,130 1440,100 L1440,200 L0,200 Z;
+                        M0,120 C360,180 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,200 L0,200 Z"
+                dur="8s" repeatCount="indefinite"/>
+        </path>
+        <path fill="#FAF7F2" opacity="0.4">
+            <animate attributeName="d"
+                values="M0,160 C240,140 480,180 720,160 C960,140 1200,180 1440,160 L1440,200 L0,200 Z;
+                        M0,170 C240,180 480,140 720,170 C960,180 1200,140 1440,170 L1440,200 L0,200 Z;
+                        M0,160 C240,140 480,180 720,160 C960,140 1200,180 1440,160 L1440,200 L0,200 Z"
+                dur="7s" repeatCount="indefinite"/>
+        </path>
+        <circle cx="300" cy="155" r="4" fill="#C4663A" opacity="0.35">
+            <animate attributeName="cy" values="155;135;155" dur="4s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="900" cy="160" r="3" fill="#D4A843" opacity="0.3">
+            <animate attributeName="cy" values="160;140;160" dur="5s" repeatCount="indefinite"/>
+        </circle>
+    </svg>
+</div>
+
 <!-- FOOTER -->
 <footer>
     <div class="footer-grid">
@@ -837,34 +873,28 @@
             </div>
         </div>
         <div class="footer-col">
-            <h5>Навигация</h5>
-            <a href="#about">Обо мне</a>
-            <a href="#services">Услуги</a>
-            <a href="#how">Как я работаю</a>
-            <a href="#blog">Блог</a>
-            <a href="#tests">ИИ-тесты</a>
+            <h5>Проекты</h5>
+            <a href="index.html">Нейрокоучинг (Андрей)</a>
+            <a href="pereSBorka.html">Пересборка (вместе)</a>
         </div>
         <div class="footer-col">
             <h5>Услуги</h5>
             <a href="#services">Сплит-аудит</a>
             <a href="#services">ИИ-аудит</a>
             <a href="#services">Нейро-перепрошивка</a>
-            <a href="#services">Наставничество</a>
+            <a href="pereSBorka.html">Бережно-перепрошивка</a>
         </div>
         <div class="footer-col">
             <h5>Контакты</h5>
-            <a href="mailto:andrjur@ya.ru">andrjur@ya.ru</a>
             <a href="tel:+79684494137">+7 (968) 449-41-37</a>
             <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer">Telegram</a>
             <a href="https://vk.com/andrupsy" target="_blank" rel="noopener noreferrer">ВКонтакте</a>
         </div>
     </div>
     <div class="footer-bottom">
-        <div>
-            <span>© 2026 НейроИндыков. Все права защищены.</span>
-            <span style="margin-left:16px;"><a href="privacy.html" style="color:var(--text-muted); text-decoration:none;">Политика конфиденциальности</a></span>
-        </div>
+        <span>© 2026 НейроИндыков. Все права защищены.</span>
         <span>Сделано с 🧠 и ❤️</span>
+        <span><a href="privacy.html">Политика конфиденциальности</a></span>
     </div>
 </footer>
 

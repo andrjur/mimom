@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Андрей и Юля — Пересборка | Нейро-подход в паре</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            /* Andrew palette */
+            --terracotta: #C4663A;
+            --terracotta-light: #D4845A;
+            --gold: #D4A843;
+            --gold-light: #E8C96A;
+            --brown-dark: #2A1810;
+            --brown: #3D2B1F;
+            --brown-light: #5C4033;
+            /* Yulia palette */
+            --mint: #5BA88B;
+            --mint-light: #7BC4A8;
+            --mint-dark: #3D8B6F;
+            --mint-pale: #E8F5EE;
+            /* Shared */
+            --green: #4A7C59;
+            --cream: #F5EDE3;
+            --text: #2A1810;
+            --text-muted: #7A6B5D;
+            --bg: #FAF7F2;
+            --bg-card: #FFFFFF;
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+        /* ─── NAV ─── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(250, 247, 242, 0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(196, 102, 58, 0.1);
+            transition: all 0.3s;
+        }
+        nav.scrolled { padding: 10px 24px; background: rgba(250, 247, 242, 0.97); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem; font-weight: 700; color: var(--terracotta);
+            text-decoration: none;
+        }
+
+        .nav-links { display: flex; gap: 24px; list-style: none; }
+        .nav-links a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover { color: var(--terracotta); }
+
+        .nav-cta {
+            background: var(--terracotta); color: #fff; border: none; padding: 10px 20px;
+            border-radius: 50px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .nav-cta:hover { background: var(--terracotta-light); transform: translateY(-1px); }
+
+        .nav-buttons { display: flex; gap: 8px; }
+
+        /* ─── HERO ─── */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 120px 24px 80px; position: relative;
+            background: linear-gradient(180deg, var(--bg) 0%, var(--cream) 100%);
+        }
+        .hero-parallax {
+            position: absolute; inset: 0; overflow: hidden;
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80') center/cover no-repeat;
+            opacity: 0.12;
+        }
+        .hero-content { position: relative; z-index: 1; max-width: 800px; }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(91, 168, 139, 0.1); border: 1px solid rgba(91, 168, 139, 0.2);
+            padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; color: var(--mint);
+            margin-bottom: 28px; font-weight: 500;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 700; line-height: 1.15;
+            margin-bottom: 20px; color: var(--brown-dark);
+        }
+        .hero h1 .highlight-andrew { color: var(--terracotta); }
+        .hero h1 .highlight-yulia { color: var(--mint); }
+
+        .hero p {
+            font-size: 1.1rem; color: var(--text-muted); max-width: 580px; margin: 0 auto 32px;
+            line-height: 1.8;
+        }
+
+        .hero-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+        .btn-primary {
+            background: var(--terracotta); color: #fff; border: none; padding: 16px 36px;
+            border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-primary:hover { background: var(--terracotta-light); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(196, 102, 58, 0.3); }
+
+        .btn-mint {
+            background: var(--mint); color: #fff; border: none; padding: 16px 36px;
+            border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-mint:hover { background: var(--mint-light); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(91, 168, 139, 0.3); }
+
+        .btn-secondary {
+            background: transparent; color: var(--text); border: 1.5px solid var(--brown-light);
+            padding: 16px 36px; border-radius: 50px; font-size: 1rem; font-weight: 500; cursor: pointer;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-secondary:hover { border-color: var(--terracotta); color: var(--terracotta); }
+
+        /* ─── SECTIONS ─── */
+        section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+
+        .section-label {
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 3px;
+            margin-bottom: 12px; text-align: center;
+        }
+        .section-label.terracotta { color: var(--terracotta); }
+        .section-label.mint { color: var(--mint); }
+
+        .section-title {
+            font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; text-align: center;
+            margin-bottom: 16px; color: var(--brown-dark);
+        }
+        .section-subtitle {
+            font-size: 1rem; color: var(--text-muted); text-align: center;
+            max-width: 560px; margin: 0 auto 56px;
+        }
+
+        /* ─── PARALLAX DIVIDERS ─── */
+        .parallax-divider {
+            height: 300px; position: relative; overflow: hidden;
+            background-attachment: fixed; background-position: center; background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .parallax-divider::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(26,18,8,0.5), rgba(26,18,8,0.75));
+        }
+        .parallax-divider .parallax-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 1; text-align: center; color: #fff; width: 90%; max-width: 700px;
+        }
+        .parallax-divider .parallax-text h3 {
+            font-size: clamp(1.4rem, 3vw, 2rem); margin-bottom: 12px;
+        }
+        .parallax-divider .parallax-text p {
+            font-size: 1rem; opacity: 0.85; line-height: 1.7;
+        }
+
+        /* ─── ABOUT DUAL ─── */
+        .about-dual {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;
+        }
+        .about-person {
+            text-align: center;
+        }
+        .about-person img {
+            width: 100%; max-width: 320px; border-radius: 20px; object-fit: cover;
+            aspect-ratio: 3/4; margin-bottom: 24px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+        }
+        .about-person.andrew img { border: 3px solid var(--terracotta); }
+        .about-person.yulia img { border: 3px solid var(--mint); }
+
+        .about-person h3 {
+            font-size: 1.6rem; margin-bottom: 4px;
+        }
+        .about-person .vibe-tag {
+            display: inline-block; padding: 4px 14px; border-radius: 50px; font-size: 0.75rem;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;
+        }
+        .about-person.andrew .vibe-tag { background: rgba(196,102,58,0.1); color: var(--terracotta); }
+        .about-person.yulia .vibe-tag { background: rgba(91,168,139,0.1); color: var(--mint); }
+
+        .about-person p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px; line-height: 1.8; }
+
+        .feature-list { list-style: none; margin-top: 20px; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+        .feature-list li {
+            display: flex; align-items: center; gap: 10px; font-size: 0.9rem;
+        }
+        .feature-list .icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;
+        }
+        .andrew .feature-list .icon { background: rgba(196, 102, 58, 0.1); }
+        .yulia .feature-list .icon { background: rgba(91, 168, 139, 0.1); }
+
+        /* ─── PHILOSOPHY ─── */
+        .philosophy-box {
+            background: var(--bg-card); border: 1px solid rgba(91,168,139,0.15);
+            border-radius: var(--radius); padding: 48px 40px; text-align: center;
+            position: relative; overflow: hidden;
+        }
+        .philosophy-box::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--terracotta), var(--mint));
+        }
+        .philosophy-box h2 { font-size: 2rem; margin-bottom: 16px; color: var(--brown-dark); }
+        .philosophy-box p { color: var(--text-muted); font-size: 1.05rem; max-width: 650px; margin: 0 auto 16px; line-height: 1.8; }
+        .philosophy-box .quote {
+            font-style: italic; font-size: 1.2rem; color: var(--brown); margin-top: 24px;
+            padding-top: 24px; border-top: 1px solid rgba(91,168,139,0.15);
+        }
+
+        /* ─── YIN-YAN ─── */
+        .yin-yan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-radius: var(--radius); overflow: hidden; }
+        .yin-yan-side { padding: 40px 36px; }
+        .yin-yan-side.andrew-side {
+            background: linear-gradient(135deg, rgba(196,102,58,0.05), rgba(212,168,67,0.05));
+            border-right: 1px solid rgba(196,102,58,0.1);
+        }
+        .yin-yan-side.yulia-side {
+            background: linear-gradient(135deg, rgba(91,168,139,0.05), rgba(123,196,168,0.05));
+        }
+        .yin-yan-side h3 { font-size: 1.3rem; margin-bottom: 16px; }
+        .yin-yan-side.andrew-side h3 { color: var(--terracotta); }
+        .yin-yan-side.yulia-side h3 { color: var(--mint); }
+        .yin-yan-side ul { list-style: none; }
+        .yin-yan-side li { padding: 8px 0; font-size: 0.9rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .yin-yan-side li:last-child { border: none; }
+        .yin-yan-side li::before { margin-right: 8px; font-size: 0.85rem; }
+        .yin-yan-side.andrew-side li::before { content: '⚡'; }
+        .yin-yan-side.yulia-side li::before { content: '🌿'; }
+
+        /* ─── PROGRAMS ─── */
+        .programs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+
+        .program-card {
+            background: var(--bg-card); border: 1px solid rgba(0,0,0,0.06);
+            border-radius: var(--radius); padding: 36px 28px; transition: all 0.3s;
+            display: flex; flex-direction: column;
+        }
+        .program-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.08); }
+        .program-card.full-width { grid-column: span 2; }
+
+        .program-tag {
+            display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.7rem;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;
+            width: fit-content;
+        }
+        .program-tag.terracotta { background: rgba(196,102,58,0.1); color: var(--terracotta); }
+        .program-tag.mint { background: rgba(91,168,139,0.1); color: var(--mint); }
+        .program-tag.gold { background: rgba(212,168,67,0.15); color: #B8922F; }
+
+        .program-card h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; font-family: 'Inter', sans-serif; }
+        .program-card p { color: var(--text-muted); font-size: 0.88rem; line-height: 1.7; flex-grow: 1; }
+
+        .program-price {
+            margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.06);
+            display: flex; align-items: baseline; gap: 6px;
+        }
+        .program-price .amount { font-size: 1.2rem; font-weight: 700; color: var(--brown-dark); }
+        .program-price .period { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* ─── MANIFEST ─── */
+        .manifest-section {
+            background: var(--brown-dark); border-radius: var(--radius); padding: 60px 48px;
+            color: var(--cream); text-align: center; position: relative; overflow: hidden;
+        }
+        .manifest-section::before {
+            content: ''; position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80') center/cover;
+            opacity: 0.08;
+        }
+        .manifest-section h2 {
+            font-size: clamp(1.6rem, 3.5vw, 2.2rem); margin-bottom: 20px; position: relative;
+        }
+        .manifest-section p {
+            font-size: 1rem; max-width: 650px; margin: 0 auto 16px; position: relative;
+            opacity: 0.85; line-height: 1.8;
+        }
+        .manifest-section .btn-primary { position: relative; margin-top: 24px; }
+        .manifest-section .btn-mint { position: relative; margin-top: 24px; }
+
+        /* ─── TESTIMONIALS ─── */
+        .testimonials-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+
+        .testimonial-card {
+            background: var(--bg-card); border: 1px solid rgba(0,0,0,0.06);
+            border-radius: var(--radius); padding: 32px;
+        }
+        .testimonial-card.case-study {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--brown-dark), var(--brown));
+            color: var(--cream);
+            display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;
+        }
+        .case-before, .case-after { padding: 24px; border-radius: var(--radius-sm); }
+        .case-before { background: rgba(196, 102, 58, 0.15); border: 1px solid rgba(196, 102, 58, 0.3); }
+        .case-after { background: rgba(91, 168, 139, 0.2); border: 1px solid rgba(91, 168, 139, 0.4); }
+        .case-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+        .case-before .case-label { color: var(--terracotta-light); }
+        .case-after .case-label { color: var(--mint-light); }
+        .case-list { list-style: none; font-size: 0.9rem; line-height: 1.8; }
+        .case-list li::before { content: '— '; opacity: 0.5; }
+
+        .testimonial-stars { color: var(--gold); font-size: 0.85rem; margin-bottom: 14px; letter-spacing: 2px; }
+        .testimonial-card blockquote {
+            font-size: 0.95rem; color: var(--text-muted); line-height: 1.8;
+            margin-bottom: 20px; font-style: italic;
+        }
+        .testimonial-author { display: flex; align-items: center; gap: 12px; }
+        .testimonial-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem; color: #fff;
+        }
+        .testimonial-avatar.terracotta-bg { background: linear-gradient(135deg, var(--terracotta), var(--gold)); }
+        .testimonial-avatar.mint-bg { background: linear-gradient(135deg, var(--mint), var(--mint-light)); }
+        .testimonial-name { font-weight: 600; font-size: 0.9rem; }
+        .testimonial-role { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* ─── CTA ─── */
+        .cta-section { text-align: center; padding: 100px 24px; }
+        .cta-box {
+            background: linear-gradient(135deg, var(--brown-dark), var(--brown));
+            border-radius: 24px; padding: 72px 48px; position: relative; overflow: hidden;
+            color: var(--cream);
+        }
+        .cta-box::before {
+            content: ''; position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1920&q=80') center/cover;
+            opacity: 0.1;
+        }
+        .cta-box h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); margin-bottom: 16px; position: relative; }
+        .cta-box p { font-size: 1.05rem; max-width: 500px; margin: 0 auto 32px; position: relative; opacity: 0.85; }
+        .cta-box .btn-primary { position: relative; }
+        .cta-box .btn-mint { position: relative; }
+        .cta-box .btn-secondary { position: relative; border-color: rgba(245,237,227,0.3); color: var(--cream); }
+
+        /* ─── FOOTER ─── */
+        footer {
+            border-top: 1px solid rgba(196, 102, 58, 0.1);
+            padding: 60px 24px 40px; max-width: 1100px; margin: 0 auto;
+            background: var(--bg);
+        }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .footer-brand p { color: var(--text-muted); font-size: 0.85rem; margin-top: 12px; max-width: 280px; line-height: 1.7; }
+        .footer-col h5 { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; color: var(--terracotta); }
+        .footer-col a { display: block; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; margin-bottom: 8px; transition: color 0.2s; }
+        .footer-col a:hover { color: var(--terracotta); }
+        .footer-bottom {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-top: 24px; border-top: 1px solid rgba(196, 102, 58, 0.08);
+            font-size: 0.8rem; color: var(--text-muted);
+        }
+
+        /* ─── COOKIE BANNER ─── */
+        #cookie-banner {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+            background: var(--brown-dark); color: var(--cream);
+            padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; flex-wrap: wrap; font-size: 0.85rem;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+        }
+        #cookie-banner p { margin: 0; flex: 1; min-width: 200px; }
+        #cookie-banner a { color: var(--gold); text-decoration: underline; }
+        #cookie-banner button {
+            background: var(--terracotta); color: #fff; border: none; padding: 10px 24px;
+            border-radius: 50px; cursor: pointer; font-weight: 600; white-space: nowrap;
+        }
+
+        /* ─── ANIMATIONS ─── */
+        .fade-up {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) {
+            nav { padding: 12px 16px; }
+            .nav-links { display: none; }
+            section { padding: 60px 16px; }
+            .about-dual { grid-template-columns: 1fr; gap: 40px; }
+            .yin-yan-grid { grid-template-columns: 1fr; }
+            .yin-yan-side.andrew-side { border-right: none; border-bottom: 1px solid rgba(196,102,58,0.1); }
+            .programs-grid { grid-template-columns: 1fr; }
+            .program-card.full-width { grid-column: span 1; }
+            .testimonials-grid { grid-template-columns: 1fr; }
+            .testimonial-card.case-study { grid-column: span 1; grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .cta-box { padding: 48px 24px; }
+            .parallax-divider { height: 200px; background-attachment: scroll; }
+            .hero-parallax { background-attachment: scroll; }
+            .manifest-section { padding: 48px 24px; }
+        }
+        @media (max-width: 600px) {
+            .footer-grid { grid-template-columns: 1fr; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .hero-buttons a { width: 100%; max-width: 280px; text-align: center; }
+            .nav-buttons { flex-direction: column; gap: 6px; }
+            .nav-buttons a, .nav-buttons .nav-cta { width: 100%; text-align: center; }
+            .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+    <a href="index.html" class="logo">НейроИндыков</a>
+    <ul class="nav-links">
+        <li><a href="#about">Мы</a></li>
+        <li><a href="#philosophy">Философия</a></li>
+        <li><a href="#approach">Подход Инь/Ян</a></li>
+        <li><a href="#programs">Программы</a></li>
+        <li><a href="#testimonials">Отзывы</a></li>
+    </ul>
+    <div class="nav-buttons">
+        <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="nav-cta">Написать в ТГ</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-parallax"></div>
+    <div class="hero-content">
+        <div class="hero-badge">
+            Бережная работа в паре
+        </div>
+        <h1>Медленно, но верно.<br><span class="highlight-andrew">Андрей</span> и <span class="highlight-yulia">Юля</span></h1>
+        <p>Мы — пара практиков, которая помогает людям вернуть себе себя. Без насилия, без героизма. По миллиметру в день.</p>
+        <div class="hero-buttons">
+            <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="btn-primary">Начать диалог</a>
+            <a href="#philosophy" class="btn-secondary">Узнать больше</a>
+        </div>
+    </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+    <div class="section-label terracotta">О нас</div>
+    <h2 class="section-title">Два начала — одна сила</h2>
+    <p class="section-subtitle">Мы не конкурируем. Мы дополняем друг друга.</p>
+
+    <div class="about-dual">
+        <div class="about-person andrew fade-up">
+            <img src="Andrew.jpg" alt="Андрей Индыков" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'">
+            <h3>Андрей Индыков</h3>
+            <span class="vibe-tag">Джек по соционике</span>
+            <p>Коуч и НЛП-практик с 15+ летним стажем. Работаю через типологии, смыслы и структуру. Задаю ритм, границы, фреймворк.</p>
+            <p>Инженер по образованию, нейробиолог по призванию. Восстановил зрение, наладил сон, убрал психосоматику — и теперь уч этому других.</p>
+            <ul class="feature-list">
+                <li><span class="icon">🧠</span> Структура и чёткие рамки</li>
+                <li><span class="icon">⚡</span> Еженедельные опросники и чек-листы</li>
+                <li><span class="icon">🎯</span> Типологии и стратегия</li>
+                <li><span class="icon">📊</span> Объективные данные и метрики</li>
+            </ul>
+        </div>
+        <div class="about-person yulia fade-up" style="transition-delay: 0.15s;">
+            <img src="yulia.jpg" alt="Юля Ляшенко" onerror="this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80'">
+            <h3>Юля Ляшенко</h3>
+            <span class="vibe-tag">Бальзак по соционике</span>
+            <p>Телесный практик, внимательный астролог и КИ-специалист. Знаю, как хроническое напряжение прячется в мышцах, как дыхание становится ловушкой.</p>
+            <p>Создаю пространство тотальной безопасности. Здесь можно выдохнуть, легализовать усталость и получить безусловное принятие.</p>
+            <ul class="feature-list">
+                <li><span class="icon">🌿</span> Телесные практики и дыхание</li>
+                <li><span class="icon">✨</span> Астрология как карта ритмов</li>
+                <li><span class="icon">🫁</span> Снятие зажимов без спортзала</li>
+                <li><span class="icon">💚</span> Безоценочное пространство</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- PARALLAX -->
+<div class="parallax-divider" style="background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80');">
+    <div class="parallax-text">
+        <h3>Изменения — это не про «стать лучше»</h3>
+        <p>Это про убрать то, что режет, и смазать то, что скрипит</p>
+    </div>
+</div>
+
+<!-- PHILOSOPHY -->
+<section id="philosophy">
+    <div class="philosophy-box fade-up">
+        <div class="section-label mint">Наша философия</div>
+        <h2>Внутренний Санаторий</h2>
+        <p>Мы не психологи и не коучи в привычном понимании. Мы — внутренний санаторий-профилакторий.</p>
+        <p>В санатории есть чёткий режим и понятные процедуры (Ян-структура, ритм, границы). Но внутри этих границ — тотальная свобода и бережность (Инь-пространство, расслабление, снятие брони).</p>
+        <p>Мы не обещаем мгновенных трансформаций. Мы учим выстраивать устойчивость в условиях затяжного «апокалипсиса». Медленно. Без героизма. По миллиметру в день.</p>
+        <p class="quote">«Чем больше вы "работаете над собой", тем меньше сил у вас остаётся. Хватит чинить. Пора пересобрать.»</p>
+    </div>
+</section>
+
+<!-- YIN-YAN APPROACH -->
+<section id="approach">
+    <div class="section-label terracotta">Подход</div>
+    <h2 class="section-title">Магия полярностей: Инь и Ян</h2>
+    <p class="section-subtitle">Мы не просто «два коуча». Мы сознательно выстраиваем архетипическую пару, чтобы закрыть все ваши потребности в изменениях.</p>
+
+    <div class="yin-yan-grid fade-up">
+        <div class="yin-yan-side andrew-side">
+            <h3>Ян — Андрей</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">Структурный, технологичный, направляющий</p>
+            <ul>
+                <li>Задаёт ритм, границы, фреймворк</li>
+                <li>Вводит еженедельные опросники и чек-листы</li>
+                <li>Следит за таймингом и договорённостями</li>
+                <li>Мягко, но твёрдо возвращает фокус на действия</li>
+                <li>Помогает сломать сценарий «хорошей девочки» / «скалы»</li>
+                <li>Отслеживает логику и отговорки</li>
+            </ul>
+        </div>
+        <div class="yin-yan-side yulia-side">
+            <h3>Инь — Юля</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">Живое, телесное, принимающее</p>
+            <ul>
+                <li>Создаёт пространство тотальной безопасности</li>
+                <li>Снимает телесные зажимы и хроническое напряжение</li>
+                <li>Возвращает контакт с собой</li>
+                <li>Учит запрашивать поддержку, а не обслуживать всех</li>
+                <li>Легализует усталость и даёт право просто быть</li>
+                <li>Считывает микродвижения тела и интонации</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- PARALLAX 2 -->
+<div class="parallax-divider" style="background-image: url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1920&q=80');">
+    <div class="parallax-text">
+        <h3>Эффект идеального родительства</h3>
+        <p>Безусловная любовь и принятие + чёткие, защищающие границы. Это лечит глубинные травмы быстрее, чем годы терапии.</p>
+    </div>
+</div>
+
+<!-- PROGRAMS -->
+<section id="programs">
+    <div class="section-label mint">Программы</div>
+    <h2 class="section-title">Что мы предлагаем</h2>
+    <p class="section-subtitle">От бесплатных магнитов до полноценной «Пересборки» на 3 месяца</p>
+
+    <div class="programs-grid">
+        <div class="program-card fade-up">
+            <span class="program-tag terracotta">Бесплатно</span>
+            <h3>3 вопроса, которые заменят час у психолога</h3>
+            <p>PDF с тремя триггерными вопросами + аудио-практика от Юли. Узнайте, куда уходит ваша энергия.</p>
+            <div class="program-price">
+                <span class="amount">Бесплатно</span>
+                <span class="period">/ лид-магнит</span>
+            </div>
+        </div>
+        <div class="program-card fade-up" style="transition-delay: 0.1s;">
+            <span class="program-tag gold">Микропродукт</span>
+            <h3>Аудит внутренней комнаты</h3>
+            <p>5-страничный PDF с вопросами-маркерами + 15 минут голосового разбора от Андрея или Юли.</p>
+            <div class="program-price">
+                <span class="amount">490 ₽</span>
+                <span class="period">/ аудит</span>
+            </div>
+        </div>
+        <div class="program-card fade-up" style="transition-delay: 0.2s;">
+            <span class="program-tag mint">Пилот</span>
+            <h3>Лаборатория «Медленно, но верно»</h3>
+            <p>Месячное сопровождение. Чекап состояния, инструменты (астрология + тело + данные), еженедельная сверка запросов.</p>
+            <div class="program-price">
+                <span class="amount">20 000 ₽</span>
+                <span class="period">/ месяц</span>
+            </div>
+        </div>
+        <div class="program-card fade-up" style="transition-delay: 0.3s;">
+            <span class="program-tag terracotta">Основная программа</span>
+            <h3>«Пересборка» — 3 месяца бережной трансформации</h3>
+            <p>Полная программа с двумя наставниками. Инь-Ян подход: структура Андрея + телесная работа Юли. Включает созвоны, чат, практики.</p>
+            <div class="program-price">
+                <span class="amount">200 000 ₽</span>
+                <span class="period">/ 4 месяца</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MANIFEST -->
+<section id="manifest" style="padding-top:40px;">
+    <div class="manifest-section fade-up">
+        <h2>Манифест «Пересборки»</h2>
+        <p>Мы живём в эпоху тотальной переработки самих себя. Из каждого утюга кричат, что нужно стать лучше, проработать травмы, выйти из зоны комфорта.</p>
+        <p>Но если вы читаете это — вы уже всё это делали. И вы знаете главную тайну: <strong style="color:var(--gold-light);">чем больше вы «работаете над собой», тем меньше сил у вас остаётся.</strong></p>
+        <p>Ваша энергия каждый день уходит не на развитие, а на поддержание статус-кво. На удержание маски «сильного мужчины», «понимающей женщины», «эффективного профессионала».</p>
+        <p>Хватит чинить себя силой воли. Пора пересобрать систему — бережно, по миллиметру, без героизма.</p>
+        <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap; position:relative;">
+            <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="btn-primary">Начать пересборку</a>
+            <a href="https://vk.com/freedancing" target="_blank" rel="noopener noreferrer" class="btn-mint">Наша страница ВК</a>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+    <div class="section-label terracotta">Отзывы</div>
+    <h2 class="section-title">Реальные результаты</h2>
+    <p class="section-subtitle">Кейсы и отзывы людей, которые прошли «Пересборку»</p>
+
+    <div class="testimonials-grid">
+        <div class="testimonial-card case-study fade-up">
+            <div>
+                <div class="case-label">Было</div>
+                <ul class="case-list">
+                    <li>Невозможность сказать «нет»</li>
+                    <li>Хроническая усталость и апатия</li>
+                    <li>Окружение, которое тянет вниз</li>
+                    <li>Постоянное напряжение и тревога</li>
+                </ul>
+            </div>
+            <div>
+                <div class="case-label">Стало</div>
+                <ul class="case-list">
+                    <li>Выстроенные личные границы</li>
+                    <li>Отказ от чужой ответственности</li>
+                    <li>Чистка окружения</li>
+                    <li>Спокойствие и ясность действий</li>
+                </ul>
+            </div>
+        </div>
+        <div class="testimonial-card fade-up" style="transition-delay: 0.1s;">
+            <div class="testimonial-stars">★★★★★</div>
+            <blockquote>«Я не рву душу. Выпиливаю из жизни всё, что мешает дышать. Андрей и Юля помогли увидеть, где я сам себе враг.»</blockquote>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar terracotta-bg">К1</div>
+                <div>
+                    <div class="testimonial-name">Клиент</div>
+                    <div class="testimonial-role">Предприниматель</div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card fade-up" style="transition-delay: 0.2s;">
+            <div class="testimonial-stars">★★★★★</div>
+            <blockquote>«Выгорание прошло после нескольких сессий. Я снова чувствую энергию и вдохновение. Инструменты, которые я использую каждый день.»</blockquote>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar mint-bg">К2</div>
+                <div>
+                    <div class="testimonial-name">Клиент</div>
+                    <div class="testimonial-role">Руководитель проекта</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="cta-box fade-up">
+        <h2>Готовы начать пересборку?</h2>
+        <p>Напишите в Telegram, чтобы записаться на бесплатную консультацию</p>
+        <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap; position:relative;">
+            <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="btn-primary">Написать в Telegram</a>
+            <a href="https://vk.com/freedancing" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="border-color:rgba(245,237,227,0.3); color:var(--cream);">Наша ВК-страница</a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <a href="index.html" class="logo">НейроИндыков</a>
+            <p>Бережная работа в паре. Андрей и Юля помогают вернуть себе себя — медленно, без насилия, по миллиметру в день.</p>
+        </div>
+        <div class="footer-col">
+            <h5>Навигация</h5>
+            <a href="#about">Мы</a>
+            <a href="#philosophy">Философия</a>
+            <a href="#approach">Подход Инь/Ян</a>
+            <a href="#programs">Программы</a>
+        </div>
+        <div class="footer-col">
+            <h5>Программы</h5>
+            <a href="#programs">3 вопроса (бесплатно)</a>
+            <a href="#programs">Аудит внутренней комнаты</a>
+            <a href="#programs">Лаборатория</a>
+            <a href="#programs">Пересборка</a>
+        </div>
+        <div class="footer-col">
+            <h5>Контакты</h5>
+            <a href="mailto:andrjur@ya.ru">andrjur@ya.ru</a>
+            <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer">Telegram</a>
+            <a href="https://vk.com/freedancing" target="_blank" rel="noopener noreferrer">ВКонтакте</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div>
+            <span>© 2026 Андрей и Юля. Все права защищены.</span>
+            <span style="margin-left:16px;"><a href="privacy.html" style="color:var(--text-muted); text-decoration:none;">Политика конфиденциальности</a></span>
+        </div>
+        <span>Сделано с 🧠 и 💚</span>
+    </div>
+</footer>
+
+<!-- COOKIE BANNER -->
+<div id="cookie-banner">
+    <p>Этот сайт использует файлы cookie для улучшения работы. Продолжая использовать сайт, вы соглашаетесь с <a href="privacy.html">политикой конфиденциальности</a>.</p>
+    <button onclick="document.getElementById('cookie-banner').style.display='none'; localStorage.setItem('cookie accepted', 'true');">Принять</button>
+</div>
+
+<script>
+    if (localStorage.getItem('cookie accepted') === 'true') {
+        document.getElementById('cookie-banner').style.display = 'none';
+    }
+
+    window.addEventListener('scroll', () => {
+        document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        document.querySelectorAll('.parallax-divider').forEach(el => {
+            const rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                el.style.backgroundPositionY = `${scrolled * 0.3}px`;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
