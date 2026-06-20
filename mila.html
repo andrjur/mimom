@@ -2,7 +2,9 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#B5647A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Мила — Остеокоррекция, биодинамика и нумерология | Воронеж</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -85,8 +87,8 @@
 
         .hero-parallax {
             position: absolute; inset: 0; overflow: hidden;
-            background: url('mila_fon.jpg') center/cover no-repeat;
-            opacity: 0.15;
+            background: url('mila_fon_mob.jpg') center/cover no-repeat;
+            opacity: 0.18;
         }
 
         .hero-content { position: relative; z-index: 1; max-width: 800px; }
@@ -374,7 +376,9 @@
             .directions-grid { grid-template-columns: 1fr; }
             #how > div { grid-template-columns: 1fr !important; text-align: center; }
             #how .section-label, #how .section-title, #how .section-subtitle { text-align: center !important; }
+            #how img { margin: 0 auto 24px; }
             .testimonials-grid { grid-template-columns: 1fr; }
+            .testimonials-grid > div[style*="grid-column: span 2"] { grid-column: span 1 !important; }
             .footer-grid { grid-template-columns: 1fr 1fr; }
             .hero-stats { flex-direction: column; gap: 20px; }
             .cta-box { padding: 48px 24px; }
@@ -390,6 +394,15 @@
             .nav-buttons { flex-direction: column; gap: 6px; }
             .nav-buttons a, .nav-buttons .nav-cta { width: 100%; text-align: center; }
             .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+            .hero h1 { font-size: 1.8rem; }
+            .hero p { font-size: 1rem; }
+            .section-title { font-size: 1.5rem; }
+            .cta-box { padding: 36px 20px; }
+            .cta-box h2 { font-size: 1.4rem; }
+        }
+
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .hero h1 { font-size: 2.4rem; }
         }
     </style>
 </head>
@@ -446,6 +459,7 @@
     <div class="about-grid">
         <div class="about-visual fade-up">
             <img src="mila1.jpg" alt="Мила — остеопат" onerror="this.style.display='none'">
+            <img src="mila_gal1.jpg" alt="Мила" style="width: 60%; max-width: 200px; border-radius: 14px; object-fit: cover; margin-top: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); opacity: 0.9;" onerror="this.style.display='none'">
         </div>
         <div class="about-text fade-up">
             <div class="section-label">Обо мне</div>
@@ -590,6 +604,7 @@
     <div style="display: grid; grid-template-columns: auto 1fr; gap: 48px; align-items: start;">
         <div class="fade-up" style="text-align: center;">
             <img src="mila2.jpg" alt="Мила" style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover; box-shadow: 0 12px 40px rgba(0,0,0,0.12); border: 3px solid rgba(181,100,122,0.2);" onerror="this.style.display='none'">
+            <img src="mila_gal3.jpg" alt="Мила" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-top: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); border: 2px solid rgba(181,100,122,0.15);" onerror="this.style.display='none'">
         </div>
         <div>
             <div class="section-label" style="text-align:left;">Процесс</div>
@@ -623,37 +638,17 @@
     <p class="section-subtitle">Реальные люди, реальные результаты</p>
 
     <div class="testimonials-grid">
-        <!-- Case Study — Real Review -->
-        <div class="testimonial-card case-study fade-up" style="grid-column: span 2; background: linear-gradient(135deg, var(--brown-dark), var(--brown)); color: var(--cream); padding: 40px 48px;">
-            <div style="max-width: 100%;">
-                <div class="testimonial-stars" style="color: var(--gold);">★★★★★</div>
-                <blockquote style="color: var(--cream); font-size: 1rem; line-height: 1.9; margin-bottom: 24px; font-style: italic; opacity: 0.95;">
-                    «Мила, позволь написать отзыв о твоей работе Остеопатом. Пусть как можно больше людей узнают о твоих способностях и как можно больше людей станет счастливее благодаря твоему таланту.
-                    <br><br>
-                    Ранее никогда не была у Остеопата, возможно каждый работает по своему, но то что делает Мила — это очень, очень мощно. Плюс специалист постоянно повышает свою квалификацию.
-                    <br><br>
-                    У меня была сильная, глубокая травма. Эта травма была настолько глубокая и больная, что разговаривать о ней без слёз никогда не могла. Вспоминая, тему рыдала навзрыд. Не могла себя простить. Винила себя, терзала. Думала так и будет эта боль со мной до могилы.
-                    <br><br>
-                    Мила сняла с меня эту боль. Теперь всё в прошлом. Только подумать, сколько блоков, зажимов, напряжения в теле было от истории. Более 20 лет носила этот груз в своём теле.
-                    <br><br>
-                    Мила, как опытный хирург, сделала глубокую чистку, вычистив всё без остатка. Не могу словами передать своё облегчение. Это как освобождение. Это очень прекрасное чувство свободы.
-                    <br><br>
-                    Мила — Остеопат от Бога. Здоровья и всех-всех благ в изобилии. Благодарю Вселенную за встречу с тобой.»
-                </blockquote>
-                <div class="testimonial-author">
-                    <div class="testimonial-avatar" style="background: linear-gradient(135deg, var(--rose), var(--lavender));">❤️</div>
-                    <div>
-                        <div class="testimonial-name" style="color: var(--cream);">Клиент</div>
-                        <div class="testimonial-role" style="color: rgba(250,245,240,0.6);">Отзыв из ВКонтакте</div>
-                    </div>
-                    <a href="https://vk.com/id281068158?w=wall281068158_58" target="_blank" rel="noopener noreferrer" style="margin-left:auto; color: var(--gold); text-decoration: none; font-size: 0.85rem; font-weight: 600;">Читать в VK →</a>
-                </div>
+        <!-- Case Study — Screenshot Review -->
+        <div class="fade-up" style="grid-column: span 2; text-align: center;">
+            <img src="mila_otz_crop.png" alt="Отзыв клиента" style="max-width: 100%; width: 420px; border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.12);" onerror="this.style.display='none'">
+            <div style="margin-top: 16px;">
+                <a href="https://vk.com/id281068158?w=wall281068158_58" target="_blank" rel="noopener noreferrer" style="color: var(--rose); text-decoration: none; font-size: 0.85rem; font-weight: 600;">Читать оригинал в VK →</a>
             </div>
         </div>
         <!-- Other Reviews -->
         <div class="testimonial-card fade-up" style="transition-delay: 0.1s;">
             <div class="testimonial-stars">★★★★★</div>
-            <blockquote>«После первых сеансов я почувствовала, как тело стало легче. Ушли хронические боли в шее, которые мучили годами. Мила видит то, другие пропускают.»</blockquote>
+            <blockquote>«После первых сеансов я почувствовала, как тело стало легче. Ушли хронические боли в шее, которые мучили годами. Мила видит то, что другие пропускают.»</blockquote>
             <div class="testimonial-author">
                 <div class="testimonial-avatar">А</div>
                 <div>
@@ -685,6 +680,10 @@
         <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap; position:relative;">
             <a href="https://t.me/Limila_S" target="_blank" rel="noopener noreferrer" class="btn-primary">Написать в Telegram</a>
             <a href="https://vk.com/id281068158" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="border-color: rgba(250,245,240,0.3); color: var(--cream);">Написать в ВКонтакте</a>
+        </div>
+        <div style="margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(250,245,240,0.15); position: relative;">
+            <p style="font-size: 0.9rem; opacity: 0.7; margin-bottom: 12px;">Или попробуйте:</p>
+            <a href="dar.html" style="color: var(--gold); text-decoration: none; font-weight: 600; font-size: 1rem;">Дарный сеанс — записаться бесплатно →</a>
         </div>
     </div>
 </section>

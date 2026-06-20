@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#B5647A">
+    <title>Дарный сеанс Милы — Запишитесь бесплатно</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --rose: #B5647A;
+            --rose-light: #D4899E;
+            --lavender: #8E7BAF;
+            --sage: #7A9E7E;
+            --gold: #C9A96E;
+            --brown-dark: #1E1518;
+            --cream: #FAF5F0;
+            --text: #2A1F22;
+            --text-muted: #7A6B6E;
+            --bg: #FDF9F6;
+            --bg-card: #FFFFFF;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+        .page {
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(181, 100, 122, 0.1);
+            border-radius: 20px;
+            padding: 48px 36px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+        }
+
+        .card-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(122, 158, 126, 0.1);
+            border: 1px solid rgba(122, 158, 126, 0.2);
+            padding: 6px 16px; border-radius: 50px;
+            font-size: 0.8rem; color: var(--sage); font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .card h1 {
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            font-weight: 700; margin-bottom: 12px;
+            color: var(--brown-dark);
+        }
+
+        .card h1 .highlight { color: var(--rose); }
+
+        .card > p {
+            color: var(--text-muted); font-size: 1rem;
+            margin-bottom: 32px; line-height: 1.8;
+        }
+
+        .conditions {
+            text-align: left;
+            background: rgba(181, 100, 122, 0.04);
+            border: 1px solid rgba(181, 100, 122, 0.08);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .conditions h3 {
+            font-size: 1rem; font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            color: var(--rose); margin-bottom: 14px;
+        }
+
+        .conditions ul {
+            list-style: none;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .conditions li {
+            display: flex; align-items: flex-start; gap: 10px;
+            font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;
+        }
+
+        .conditions li::before {
+            content: '✦';
+            color: var(--sage);
+            font-size: 0.7rem;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background: var(--rose); color: #fff; border: none;
+            padding: 16px 36px; border-radius: 50px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s; text-decoration: none;
+            display: inline-block; width: 100%; max-width: 300px;
+        }
+        .btn-primary:hover {
+            background: var(--rose-light);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(181, 100, 122, 0.35);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text); border: 1.5px solid rgba(181, 100, 122, 0.3);
+            padding: 14px 32px; border-radius: 50px;
+            font-size: 0.9rem; font-weight: 500; cursor: pointer;
+            transition: all 0.3s; text-decoration: none;
+            display: inline-block; margin-top: 12px;
+        }
+        .btn-outline:hover {
+            border-color: var(--rose); color: var(--rose);
+        }
+
+        .divider {
+            width: 60px; height: 2px;
+            background: linear-gradient(90deg, var(--rose), var(--lavender));
+            margin: 0 auto 24px; border-radius: 2px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--rose); }
+
+        @media (max-width: 600px) {
+            .card { padding: 36px 24px; }
+            .conditions { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+    <div class="card">
+        <div class="card-badge">🎁 Бесплатно</div>
+        <h1>Дарный сеанс <span class="highlight">Милы</span></h1>
+        <div class="divider"></div>
+        <p>Остеокоррекция — это мягкое неврачебное восстановление без хруста и боли. Попробуйте один сеанс бесплатно, чтобы почувствовать, как работает биодинамический подход.</p>
+
+        <div class="conditions">
+            <h3>Условия участия</h3>
+            <ul>
+                <li>Один бесплатный сеанс остеокоррекции длительностью до 60 минут</li>
+                <li>Доступно всем жителям Воронежа и области</li>
+                <li>Запись по предварительной договорённости в Telegram или ВКонтакте</li>
+                <li>Возможна онлайн-консультация для удалённых клиентов</li>
+                <li>Количество мест ограничено — записывайтесь заранее</li>
+                <li>После сеанса вы сами решаете, хотите ли продолжать</li>
+            </ul>
+        </div>
+
+        <a href="https://t.me/Limila_S" target="_blank" rel="noopener noreferrer" class="btn-primary">Записаться в Telegram</a>
+        <br>
+        <a href="https://vk.com/id281068158" target="_blank" rel="noopener noreferrer" class="btn-outline">Написать во ВКонтакте</a>
+
+        <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(181,100,122,0.08);">
+            <a href="mila.html" class="back-link">← Вернуться на основную страницу</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
