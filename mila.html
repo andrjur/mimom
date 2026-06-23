@@ -176,14 +176,14 @@
         .about-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
         }
-        .about-visual { position: relative; }
+        .about-visual { position: relative; width: fit-content; }
         .about-visual img {
             width: 100%; max-width: 420px; border-radius: 20px; object-fit: cover;
             aspect-ratio: 3/4; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         }
         .about-visual::before {
-            content: ''; position: absolute; top: -12px; left: -12px; right: 20px; bottom: 20px;
-            border: 2px solid var(--rose); border-radius: 20px; opacity: 0.3; z-index: -1;
+            content: ''; position: absolute; top: -14px; left: -14px; right: -14px; bottom: -14px;
+            border: 2px solid var(--rose); border-radius: 22px; opacity: 0.5; z-index: -1;
         }
 
         .about-text h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 20px; color: var(--brown-dark); }
@@ -354,6 +354,113 @@
             transition: opacity 0.7s ease, transform 0.7s ease;
         }
         .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        /* ─── MANDALA ANIMATION ─── */
+        .mandala-anim {
+            position: relative; width: 100%; overflow: hidden;
+            background: linear-gradient(180deg, transparent 0%, rgba(181,100,122,0.04) 100%);
+            margin-top: -1px;
+        }
+        .mandala-svg { display: block; width: 100%; height: auto; }
+
+        .mandala-petals {
+            transform-origin: 720px 160px;
+            animation: m-bloom 12s ease-in-out infinite;
+        }
+        .mandala-petals ellipse {
+            fill: none;
+            stroke-width: 1.2;
+            opacity: 0.6;
+        }
+        .mandala-petals ellipse:nth-child(1) { stroke: #B5647A; }
+        .mandala-petals ellipse:nth-child(2) { stroke: #8E7BAF; }
+        .mandala-petals ellipse:nth-child(3) { stroke: #B5647A; }
+        .mandala-petals ellipse:nth-child(4) { stroke: #8E7BAF; }
+        .mandala-petals ellipse:nth-child(5) { stroke: #B5647A; }
+        .mandala-petals ellipse:nth-child(6) { stroke: #8E7BAF; }
+        .mandala-petals ellipse:nth-child(7) { stroke: #B5647A; }
+        .mandala-petals ellipse:nth-child(8) { stroke: #8E7BAF; }
+        @keyframes m-bloom {
+            0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.6; }
+            50% { transform: rotate(15deg) scale(1.08); opacity: 0.85; }
+        }
+
+        .mandala-rings circle {
+            fill: none;
+            stroke-dasharray: 4 8;
+            animation: m-ring-flow 8s linear infinite;
+            opacity: 0.4;
+        }
+        .mandala-rings circle:nth-child(1) { stroke: #B5647A; stroke-width: 1; animation-duration: 7s; }
+        .mandala-rings circle:nth-child(2) { stroke: #8E7BAF; stroke-width: 0.8; animation-duration: 9s; animation-direction: reverse; }
+        .mandala-rings circle:nth-child(3) { stroke: #C9A96E; stroke-width: 0.6; animation-duration: 6s; }
+        @keyframes m-ring-flow {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: -120; }
+        }
+
+        .mandala-rays line {
+            stroke-dasharray: 2 10;
+            animation: m-ray-flow 5s linear infinite;
+            opacity: 0.35;
+        }
+        .mandala-rays line:nth-child(odd) { stroke: #B5647A; animation-duration: 4.5s; }
+        .mandala-rays line:nth-child(even) { stroke: #8E7BAF; animation-duration: 6s; animation-direction: reverse; }
+        @keyframes m-ray-flow {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: -80; }
+        }
+
+        .mandala-center {
+            animation: m-pulse 4s ease-in-out infinite;
+        }
+        @keyframes m-pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.15); }
+        }
+
+        .mandala-spark circle {
+            fill: #C9A96E;
+            opacity: 0;
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: m-twinkle 4s ease-in-out infinite;
+        }
+        .mandala-spark circle:nth-child(2n) { animation-delay: -1s; animation-duration: 5s; }
+        .mandala-spark circle:nth-child(3n) { animation-delay: -2.3s; animation-duration: 6s; fill: #7A9E7E; }
+        .mandala-spark circle:nth-child(5n) { animation-delay: -0.5s; animation-duration: 4.5s; fill: #B5647A; }
+        @keyframes m-twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 0.8; transform: scale(1.5); }
+        }
+
+        .mandala-caption {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-muted);
+            font-family: 'Playfair Display', serif;
+            font-size: 0.9rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            text-align: center;
+            pointer-events: none;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .mandala-caption .dot { color: var(--rose); font-weight: 700; }
+
+        @media (max-width: 600px) {
+            .mandala-caption { font-size: 0.6rem; letter-spacing: 2px; bottom: 10px; gap: 6px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .mandala-petals, .mandala-rings circle, .mandala-rays line,
+            .mandala-center, .mandala-spark circle { animation: none !important; }
+        }
 
         /* ─── RESPONSIVE ─── */
         @media (max-width: 1024px) {
@@ -687,37 +794,79 @@
     </div>
 </section>
 
-<!-- SVG WAVE -->
-<div class="svg-footer" style="width:100%; overflow:hidden; margin-top:-1px;">
-    <svg viewBox="0 0 1440 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display:block; width:100%; height:100px;">
+<!-- MANDALA -->
+<div class="mandala-anim">
+    <svg viewBox="0 0 1440 320" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="mandala-svg">
         <defs>
-            <linearGradient id="waveGradMila" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#B5647A;stop-opacity:0.25"/>
-                <stop offset="50%" style="stop-color:#8E7BAF;stop-opacity:0.15"/>
-                <stop offset="100%" style="stop-color:#B5647A;stop-opacity:0.25"/>
-            </linearGradient>
+            <radialGradient id="mGlow" cx="50%" cy="50%" r="55%">
+                <stop offset="0%" stop-color="#B5647A" stop-opacity="0.15"/>
+                <stop offset="45%" stop-color="#8E7BAF" stop-opacity="0.06"/>
+                <stop offset="100%" stop-color="#1E1518" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="mCenter" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#C9A96E" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#B5647A" stop-opacity="0.1"/>
+            </radialGradient>
         </defs>
-        <path fill="url(#waveGradMila)" opacity="0.5">
-            <animate attributeName="d"
-                values="M0,120 C360,180 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,200 L0,200 Z;
-                        M0,100 C360,40 720,160 1080,80 C1260,50 1380,130 1440,100 L1440,200 L0,200 Z;
-                        M0,120 C360,180 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,200 L0,200 Z"
-                dur="8s" repeatCount="indefinite"/>
-        </path>
-        <path fill="#FDF9F6" opacity="0.4">
-            <animate attributeName="d"
-                values="M0,160 C240,140 480,180 720,160 C960,140 1200,180 1440,160 L1440,200 L0,200 Z;
-                        M0,170 C240,180 480,140 720,170 C960,180 1200,140 1440,170 L1440,200 L0,200 Z;
-                        M0,160 C240,140 480,180 720,160 C960,140 1200,180 1440,160 L1440,200 L0,200 Z"
-                dur="7s" repeatCount="indefinite"/>
-        </path>
-        <circle cx="300" cy="155" r="4" fill="#B5647A" opacity="0.35">
-            <animate attributeName="cy" values="155;135;155" dur="4s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="900" cy="160" r="3" fill="#8E7BAF" opacity="0.3">
-            <animate attributeName="cy" values="160;140;160" dur="5s" repeatCount="indefinite"/>
-        </circle>
+
+        <rect width="1440" height="320" fill="url(#mGlow)"/>
+
+        <!-- Rays from center -->
+        <g class="mandala-rays" stroke-width="1" stroke-linecap="round">
+            <line x1="720" y1="160" x2="420" y2="60"/>
+            <line x1="720" y1="160" x2="360" y2="160"/>
+            <line x1="720" y1="160" x2="420" y2="260"/>
+            <line x1="720" y1="160" x2="720" y2="40"/>
+            <line x1="720" y1="160" x2="720" y2="280"/>
+            <line x1="720" y1="160" x2="1020" y2="60"/>
+            <line x1="720" y1="160" x2="1080" y2="160"/>
+            <line x1="720" y1="160" x2="1020" y2="260"/>
+        </g>
+
+        <!-- Rings -->
+        <g class="mandala-rings">
+            <circle cx="720" cy="160" r="60"/>
+            <circle cx="720" cy="160" r="100"/>
+            <circle cx="720" cy="160" r="140"/>
+        </g>
+
+        <!-- Petals (8 ellipses rotated around center) -->
+        <g class="mandala-petals">
+            <ellipse cx="720" cy="100" rx="28" ry="80" transform="rotate(0 720 160)"/>
+            <ellipse cx="720" cy="100" rx="28" ry="80" transform="rotate(45 720 160)"/>
+            <ellipse cx="720" cy="100" rx="28" ry="80" transform="rotate(90 720 160)"/>
+            <ellipse cx="720" cy="100" rx="28" ry="80" transform="rotate(135 720 160)"/>
+            <ellipse cx="720" cy="100" rx="28" ry="80" transform="rotate(180 720 160)"/>
+            <ellipse cx="720" cy="100" rx="28" ry="80" transform="rotate(225 720 160)"/>
+            <ellipse cx="720" cy="100" rx="28" ry="80" transform="rotate(270 720 160)"/>
+            <ellipse cx="720" cy="100" rx="28" ry="80" transform="rotate(315 720 160)"/>
+        </g>
+
+        <!-- Center dot -->
+        <circle class="mandala-center" cx="720" cy="160" r="8" fill="url(#mCenter)"/>
+
+        <!-- Sparkles -->
+        <g class="mandala-spark">
+            <circle cx="200" cy="90" r="1.5"/>
+            <circle cx="300" cy="200" r="1.2"/>
+            <circle cx="180" cy="260" r="1.4"/>
+            <circle cx="380" cy="80" r="1.1"/>
+            <circle cx="250" cy="140" r="1.3"/>
+            <circle cx="450" cy="250" r="1.2"/>
+            <circle cx="150" cy="180" r="1.4"/>
+            <circle cx="1060" cy="80" r="1.5"/>
+            <circle cx="1180" cy="200" r="1.2"/>
+            <circle cx="1260" cy="100" r="1.4"/>
+            <circle cx="1100" cy="260" r="1.1"/>
+            <circle cx="1340" cy="160" r="1.3"/>
+            <circle cx="1220" cy="280" r="1.2"/>
+            <circle cx="1380" cy="80" r="1.4"/>
+        </g>
     </svg>
+
+    <div class="mandala-caption">
+        <span>Тело</span><span class="dot">·</span><span>Гармония</span><span class="dot">·</span><span>Мудрость</span>
+    </div>
 </div>
 
 <!-- FOOTER -->
