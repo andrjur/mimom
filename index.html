@@ -4,9 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Андрей Индыков — Нейро-подход к жизни и бизнесу</title>
+    <meta name="description" content="Авторская методика на стыке НЛП, нейронауки и ИИ. Работаю с мышлением, состоянием и выгоранием предпринимателей с 2009 года.">
+    <meta name="author" content="Андрей Индыков">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#C4663A">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Андрей Индыков — Нейро-подход к жизни и бизнесу">
+    <meta property="og:description" content="Авторская методика на стыке НЛП, нейронауки и ИИ. Работаю с мышлением и состоянием с 2009 года.">
+    <meta property="og:image" content="og_cover.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:locale" content="ru_RU">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Андрей Индыков — Нейро-подход к жизни и бизнесу">
+    <meta name="twitter:description" content="Авторская методика на стыке НЛП, нейронауки и ИИ.">
+    <meta name="twitter:image" content="og_cover.jpg">
+
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Schema.org / JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Андрей Индыков",
+        "alternateName": "НейроИндыков",
+        "jobTitle": "Нейрокоуч, специалист по работе с мышлением",
+        "description": "Авторская методика на стыке НЛП, нейронауки и ИИ. Работаю с мышлением, состоянием и выгоранием с 2009 года.",
+        "image": "i_in_glass.jpg",
+        "telephone": "+7-968-449-41-37",
+        "sameAs": [
+            "https://t.me/andreyjurievich",
+            "https://vk.com/andrupsy"
+        ],
+        "knowsAbout": ["Нейрокоучинг", "НЛП", "Биохакинг", "ИИ-аудит", "Управление состоянием"]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": "НейроИндыков — нейрокоучинг",
+        "description": "Авторская методика проработки мышления для предпринимателей и ключевых специалистов.",
+        "provider": { "@type": "Person", "name": "Андрей Индыков" },
+        "areaServed": "RU",
+        "priceRange": "₽₽₽",
+        "telephone": "+7-968-449-41-37",
+        "url": "https://t.me/andreyjurievich"
+    }
+    </script>
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -91,8 +144,10 @@
 
         .hero-parallax {
             position: absolute; inset: 0; overflow: hidden;
-            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80') center/cover no-repeat;
-            opacity: 0.15;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(196,102,58,0.12), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(212,168,67,0.10), transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(74,124,89,0.06), transparent 60%);
         }
 
         .hero-content { position: relative; z-index: 1; max-width: 800px; }
@@ -137,6 +192,10 @@
             transition: all 0.3s; text-decoration: none; display: inline-block;
         }
         .btn-gold:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212, 168, 67, 0.35); }
+
+        .btn-tg { display: inline-flex; align-items: center; gap: 8px; }
+        .btn-tg svg { transition: transform 0.4s ease; }
+        .btn-tg:hover svg { transform: translateX(3px) rotate(-8deg); }
 
         .hero-stats {
             display: flex; gap: 48px; justify-content: center; margin-top: 56px;
@@ -361,8 +420,10 @@
         }
         .cta-box::before {
             content: ''; position: absolute; inset: 0;
-            background: url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80') center/cover;
-            opacity: 0.12;
+            background:
+                radial-gradient(circle at 30% 40%, rgba(212,168,67,0.18), transparent 50%),
+                radial-gradient(circle at 75% 65%, rgba(196,102,58,0.15), transparent 55%);
+            opacity: 1;
         }
         .cta-box h2 {
             font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 700; margin-bottom: 16px;
@@ -415,6 +476,135 @@
         }
         .fade-up.visible { opacity: 1; transform: translateY(0); }
 
+        /* ─── NEURO BRAIN ANIMATION ─── */
+        .neuro-anim {
+            position: relative; width: 100%; overflow: hidden;
+            background: linear-gradient(180deg, transparent 0%, rgba(196,102,58,0.04) 100%);
+            margin-top: -1px;
+        }
+        .neuro-svg { display: block; width: 100%; height: auto; }
+
+        .na-conn line {
+            stroke-dasharray: 3 7;
+            animation: na-flow 5s linear infinite;
+            opacity: 0.7;
+        }
+        .na-conn line:nth-child(2n) { animation-duration: 6.5s; animation-direction: reverse; }
+        .na-conn line:nth-child(3n) { animation-duration: 4s; }
+        .na-conn line:nth-child(5n) { animation-duration: 7s; }
+        .na-conn line.na-bridge {
+            stroke-width: 1.4;
+            stroke-dasharray: 4 10;
+            animation-duration: 8s;
+            opacity: 0.9;
+        }
+        @keyframes na-flow {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: -100; }
+        }
+
+        .na-nodes circle {
+            fill: var(--gold);
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: na-breath 3.5s ease-in-out infinite;
+        }
+        .na-nodes circle:nth-child(odd) { fill: var(--terracotta); }
+        .na-nodes circle:nth-child(2n) { animation-delay: -0.7s; animation-duration: 4s; }
+        .na-nodes circle:nth-child(3n) { animation-delay: -1.4s; animation-duration: 3s; }
+        .na-nodes circle:nth-child(5n) { animation-delay: -2.1s; animation-duration: 4.5s; }
+        @keyframes na-breath {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .na-spark circle {
+            fill: var(--gold-light);
+            opacity: 0;
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: na-twinkle 4s ease-in-out infinite;
+        }
+        .na-spark circle:nth-child(2n) { animation-delay: -1s; animation-duration: 5s; }
+        .na-spark circle:nth-child(3n) { animation-delay: -2.3s; animation-duration: 6s; fill: var(--terracotta); }
+        .na-spark circle:nth-child(5n) { animation-delay: -0.5s; animation-duration: 4.5s; }
+        @keyframes na-twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.4); }
+            50% { opacity: 0.85; transform: scale(1.6); }
+        }
+
+        .na-wave {
+            stroke-dasharray: 6 10;
+            animation: na-wave-flow 6s linear infinite;
+        }
+        @keyframes na-wave-flow {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: -160; }
+        }
+
+        .neuro-caption {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-muted);
+            font-family: 'Playfair Display', serif;
+            font-size: 0.95rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            text-align: center;
+            pointer-events: none;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .neuro-caption .dot { color: var(--terracotta); font-weight: 700; }
+
+        @media (max-width: 600px) {
+            .neuro-caption {
+                font-size: 0.65rem;
+                letter-spacing: 2px;
+                bottom: 12px;
+                gap: 6px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .na-conn line, .na-nodes circle, .na-spark circle, .na-wave { animation: none; }
+            .na-spark circle { opacity: 0.5; }
+        }
+
+        /* ─── STICKY CTA ─── */
+        .sticky-cta {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 250;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--terracotta);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 50px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(196,102,58,0.4);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s, background 0.3s;
+            pointer-events: none;
+        }
+        .sticky-cta.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .sticky-cta:hover { background: var(--terracotta-light); }
+        .sticky-cta svg { transition: transform 0.4s ease; }
+        .sticky-cta:hover svg { transform: translateX(3px) rotate(-8deg); }
+        @media (max-width: 600px) {
+            .sticky-cta { bottom: 80px; right: 14px; padding: 12px 18px; font-size: 0.85rem; }
+        }
+
         /* ─── RESPONSIVE ─── */
         @media (max-width: 1024px) {
             .services-grid { grid-template-columns: repeat(2, 1fr); }
@@ -461,16 +651,19 @@
     <div class="logo">НейроИндыков</div>
     <ul class="nav-links">
         <li><a href="#about">Обо мне</a></li>
-        <li><a href="pereSBorka.html">Юля</a></li>
         <li><a href="#services">Услуги</a></li>
         <li><a href="#how">Как я работаю</a></li>
         <li><a href="#blog">Блог</a></li>
         <li><a href="#tests">ИИ-тесты</a></li>
         <li><a href="#testimonials">Отзывы</a></li>
+        <li><a href="mila.html">Мила</a></li>
     </ul>
     <div class="nav-buttons">
-        <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="nav-cta">Написать в ТГ</a>
-        <a href="https://vk.com/andrupsy" target="_blank" rel="noopener noreferrer" class="nav-cta-outline">ВКонтакте</a>
+        <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="nav-cta btn-tg" data-track="cta_nav_tg">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+            Telegram
+        </a>
+        <a href="https://vk.com/andrupsy" target="_blank" rel="noopener noreferrer" class="nav-cta-outline" data-track="cta_nav_vk">ВКонтакте</a>
     </div>
 </nav>
 
@@ -482,10 +675,13 @@
             Работаю с мышлением с 2009 года
         </div>
         <h1>Нейро-подход к <span class="highlight">жизни и бизнесу</span></h1>
-        <p>Помогаю разобраться с мышлением без долгих разговоров и силы воли. Пора починить баги в вашей голове.</p>
+        <p>Помогаю предпринимателям и руководителям убрать сбои мышления, которые мешают принимать решения, вести команду и не выгорать.</p>
         <div class="hero-buttons">
-            <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="btn-primary">Написать в Telegram</a>
-            <a href="https://vk.com/andrupsy" target="_blank" rel="noopener noreferrer" class="btn-secondary">Написать в ВКонтакте</a>
+            <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="btn-primary btn-tg" data-track="cta_hero_tg">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+                Написать в Telegram
+            </a>
+            <a href="https://vk.com/andrupsy" target="_blank" rel="noopener noreferrer" class="btn-secondary" data-track="cta_hero_vk">ВКонтакте</a>
         </div>
         <div class="hero-stats">
             <div class="stat">
@@ -508,23 +704,23 @@
 <section id="about">
     <div class="about-grid">
         <div class="about-visual fade-up">
-            <img src="Andrew.jpg" alt="Андрей Индыков" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'">
+            <img src="i_in_glass.jpg" alt="Андрей Индыков" loading="lazy" onerror="this.src='Andrew.jpg'">
         </div>
         <div class="about-text fade-up">
             <div class="section-label">Обо мне</div>
             <h2>Андрей Индыков</h2>
             <p>Работаю с мышлением и состоянием с 2009 года.</p>
-            <p>На себе проверил, как работает биохакинг: восстановил зрение с -3.5 до единицы, наладил сон по 5 часов, убрал лишний вес через управление нейроресурсом.</p>
-            <p>Подход: ищем, где в мышлении сбои, и чиним их через работу с мозгом. Без воды и долгих разговоров.</p>
+            <p>На себе проверил, как работает биохакинг: восстановил зрение с −3,5 без операций, сократил сон до 5 часов без потери энергии, привёл вес в норму без диет и спортзала.</p>
+            <p>Подход: находим, где в мышлении сбои, и убираем их — через работу с состоянием и нейропривычками. Без воды и долгих разговоров.</p>
             <ul class="feature-list">
-                <li><span class="icon">🧠</span> Научно обоснованные методики</li>
+                <li><span class="icon">🧠</span> Авторская методика на стыке НЛП, нейронауки и ИИ</li>
                 <li><span class="icon">⚡</span> Быстрые устойчивые результаты</li>
                 <li><span class="icon">🔒</span> Конфиденциальность и этика</li>
                 <li><span class="icon">🎯</span> Работа без воды и силы воли</li>
-                <li><span class="icon">📜</span> Сертифицированный специалист</li>
+                <li><span class="icon">📜</span> 15+ лет практики, сертификат NLP Practitioner</li>
             </ul>
             <div style="margin-top:28px; display:flex; align-items:center; gap:16px;">
-                <img src="sertif02.jpg" alt="Сертификат NLP Practitioner" style="width:120px; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.12); object-fit:cover; aspect-ratio:4/3;">
+                <img src="sertif02.jpg" alt="Сертификат NLP Practitioner" loading="lazy" style="width:120px; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.12); object-fit:cover; aspect-ratio:4/3;">
                 <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.6;">
                     <strong style="color:var(--text);">NLP Practitioner</strong><br>
                     Center "Success Strategy", 2009
@@ -535,10 +731,10 @@
 </section>
 
 <!-- PARALLAX 1 -->
-<div class="parallax-divider" style="background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80');">
+<div class="parallax-divider" style="background-image: url('forest.jpg');">
     <div class="parallax-text">
         <h3>Ваш мозг — это система. Её можно перенастроить.</h3>
-        <p>Не мотивация. Не сила воли. Научный подход к изменениям.</p>
+        <p>Не мотивация. Не сила воли. Авторский подход к изменениям.</p>
     </div>
 </div>
 
@@ -551,26 +747,26 @@
     <div class="services-grid">
         <div class="service-card fade-up">
             <div class="service-icon">🔍</div>
-            <h3>Сплит-аудит / Двойная стратегическая сессия</h3>
-            <p>Диагностика багов мышления, построение карты изменений. Одна сессия для понимания ключевых блоков.</p>
+            <h3>Сплит-аудит</h3>
+            <p>Стратегическая сессия 90 минут онлайн. Разбираем 2–3 ключевые точки, где мышление работает против вас. На выходе: карта изменений и план первых шагов.</p>
             <div class="service-price">
                 <span class="amount">25 000 ₽</span>
-                <span class="period">/ сессия</span>
+                <span class="period">/ 90 минут</span>
             </div>
         </div>
         <div class="service-card fade-up highlighted" style="transition-delay: 0.1s;">
             <div class="service-icon">🤖</div>
-            <h3>Нейроновинка! Разовый ИИ-аудит</h3>
-            <p>ИИ-диагностика уникальным промптом по всем типологиям. Быстрый способ увидеть картину целиком.</p>
+            <h3>ИИ-аудит — новый формат</h3>
+            <p>ИИ-диагностика по нескольким типологиям одним промптом. Развёрнутый отчёт за 1 рабочий день. Подходит как первый шаг перед сессией.</p>
             <div class="service-price">
                 <span class="amount" style="color: var(--green);">2 000 ₽</span>
-                <span class="period">/ аудит</span>
+                <span class="period">/ отчёт</span>
             </div>
         </div>
         <div class="service-card fade-up" style="transition-delay: 0.2s;">
             <div class="service-icon">⚡</div>
             <h3>Нейро-перепрошивка</h3>
-            <p>Индивидуальное сопровождение. Глубокая проработка выгорания, интеграция ИИ в рабочую рутину, биохакинг сна и фокуса.</p>
+            <p>4–8 недель индивидуальной работы. Еженедельные сессии + поддержка в чате. Проработка выгорания, фокуса, интеграция ИИ в рутину, биохакинг сна.</p>
             <div class="service-price">
                 <span class="amount">от 5 000 ₽</span>
                 <span class="period">/ неделя</span>
@@ -580,7 +776,7 @@
         <div class="service-card fade-up" style="transition-delay: 0.3s;">
             <div class="service-icon">🌿</div>
             <h3>Бережно-перепрошивка</h3>
-            <p>Индивидуальное сопровождение. Глубокая медленная проработка выгорания парой специалистов. Подробнее →</p>
+            <p>8–12 недель работы парой специалистов — я и Юля. Мягкий, медленный темп. Подходит при остром выгорании или травматическом опыте. Подробнее →</p>
             <div class="service-price">
                 <span class="amount">от 7 000 ₽</span>
                 <span class="period">/ неделя</span>
@@ -590,10 +786,10 @@
         <div class="service-card fade-up span-2" style="transition-delay: 0.4s;">
             <div class="service-icon">👑</div>
             <h3>Системное наставничество</h3>
-            <p>Бизнес-консалтинг + Нейрокоучинг. Полная трансформация жизни и процессов за 3–5 месяцев. Включает все инструменты и личное сопровождение.</p>
+            <p>3–5 месяцев глубокого партнёрства. Бизнес-консалтинг + нейрокоучинг + личное сопровождение. Для владельцев и фаундеров, кто хочет переписать не только себя, но и процессы.</p>
             <div class="service-price">
-                <span class="amount">По запросу</span>
-                <span class="period">/ часто от 2% до 5% дохода</span>
+                <span class="amount">Индивидуально</span>
+                <span class="period">/ обсуждаем после диагностики</span>
             </div>
         </div>
     </div>
@@ -614,7 +810,7 @@
         <div class="step fade-up" style="transition-delay: 0.1s;">
             <div class="step-num">2</div>
             <h4>Перенастройка реакций</h4>
-            <p>Меняем автоматические привычки мышления на уровне мозга</p>
+            <p>Переписываем автоматические реакции на стресс и триггеры</p>
         </div>
         <div class="step fade-up" style="transition-delay: 0.2s;">
             <div class="step-num">3</div>
@@ -624,7 +820,7 @@
         <div class="step fade-up" style="transition-delay: 0.3s;">
             <div class="step-num">4</div>
             <h4>Работа с подсознанием</h4>
-            <p>Используем визуальные образы и паттерны</p>
+            <p>Через метафоры и образы — с тем, что разум не считывает напрямую</p>
         </div>
         <div class="step fade-up" style="transition-delay: 0.4s;">
             <div class="step-num">5</div>
@@ -650,7 +846,7 @@
 </section>
 
 <!-- PARALLAX 2 -->
-<div class="parallax-divider" style="background-image: url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1920&q=80');">
+<div class="parallax-divider" style="background-image: url('Озеро_Смердячье.jpg');">
     <div class="parallax-text">
         <h3>Изменения начинаются с понимания того, как устроен ваш мозг</h3>
         <p>Каждый день — возможность переписать старые сценарии</p>
@@ -665,7 +861,7 @@
 
     <div class="blog-grid">
         <div class="blog-card fade-up">
-            <img src="CV_death.jpg" alt="Смерть CV" class="blog-card-img" onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&q=80'">
+            <img src="CV_death.jpg" alt="Смерть CV" class="blog-card-img" loading="lazy">
             <div class="blog-card-body">
                 <span class="blog-tag">ИИ</span>
                 <h3>Смерть CV: Как ИИ-профайлинг навсегда изменит правила найма</h3>
@@ -677,7 +873,7 @@
             </div>
         </div>
         <div class="blog-card fade-up" style="transition-delay: 0.1s;">
-            <img src="how_stop.jpg" alt="Физика внутренней свободы" class="blog-card-img" onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&q=80'">
+            <img src="how_stop.jpg" alt="Физика внутренней свободы" class="blog-card-img" loading="lazy">
             <div class="blog-card-body">
                 <span class="blog-tag">Мышление</span>
                 <h3>Как перестать воевать с собой: физика внутренней свободы</h3>
@@ -689,7 +885,7 @@
             </div>
         </div>
         <div class="blog-card fade-up" style="transition-delay: 0.2s;">
-            <img src="dofam.jpg" alt="Дофамин и телефон" class="blog-card-img" onerror="this.src='https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&q=80'">
+            <img src="dofam.jpg" alt="Дофамин и телефон" class="blog-card-img" loading="lazy">
             <div class="blog-card-body">
                 <span class="blog-tag">Биохакинг</span>
                 <h3>Дофамин, телефон и ваш мозг</h3>
@@ -708,22 +904,22 @@
         <div class="blog-grid">
             <div class="blog-card fade-up">
                 <div class="blog-card-body">
+                    <span class="blog-tag" style="background:rgba(74,124,89,0.1); color:var(--green);">Подкаст №1</span>
+                    <h3>Влияние нейросетей на развитие человека</h3>
+                    <p>Плюсы, риски и правила осознанного использования ИИ. Как не потерять критическое мышление.</p>
+                    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <a href="https://vk.com/wall55463080_13910" target="_blank" rel="noopener noreferrer">Слушать в VK →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="blog-card fade-up" style="transition-delay: 0.1s;">
+                <div class="blog-card-body">
                     <span class="blog-tag" style="background:rgba(74,124,89,0.1); color:var(--green);">Подкаст №2</span>
                     <h3>Как приручить нейросеть: от «детских игр» до профессионального управления</h3>
                     <p>Техника «Семилучевой звезды»: пошаговый алгоритм идеального запроса к ИИ.</p>
                     <div style="display:flex; gap:12px; flex-wrap:wrap;">
                         <a href="https://t.me/c/1699187898/74" target="_blank" rel="noopener noreferrer">Слушать в TG →</a>
                         <a href="https://vk.com/video55463080_456243225" target="_blank" rel="noopener noreferrer">Смотреть в VK →</a>
-                    </div>
-                </div>
-            </div>
-            <div class="blog-card fade-up" style="transition-delay: 0.1s;">
-                <div class="blog-card-body">
-                    <span class="blog-tag" style="background:rgba(74,124,89,0.1); color:var(--green);">Подкаст №1</span>
-                    <h3>Влияние нейросетей на развитие человека</h3>
-                    <p>Плюсы, риски и правила осознанного использования ИИ. Как не потерять критическое мышление.</p>
-                    <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                        <a href="https://vk.com/wall55463080_13910" target="_blank" rel="noopener noreferrer">Слушать в VK →</a>
                     </div>
                 </div>
             </div>
@@ -809,15 +1005,15 @@
                 <div class="case-label">Стало</div>
                 <ul class="case-list">
                     <li>Выстроенные личные границы</li>
-                    <li>Отказ от чужой ответственности</li>
-                    <li>Чистка окружения</li>
+                    <li>Перестал тащить чужие проблемы</li>
+                    <li>Окружение изменилось само</li>
                     <li>Спокойствие и ясность действий</li>
                 </ul>
             </div>
         </div>
         <!-- Review 2 -->
         <div class="testimonial-card fade-up" style="transition-delay: 0.1s;">
-            <img src="otz01.png" alt="Отзыв клиента" style="width:100%; border-radius:12px; margin-bottom:16px;" onerror="this.style.display='none'">
+            <img src="otz01.png" alt="Отзыв клиента" loading="lazy" style="width:100%; border-radius:12px; margin-bottom:16px;" onerror="this.style.display='none'">
             <div class="testimonial-stars">★★★★★</div>
             <blockquote>«Я не рву душу. Выпиливаю из жизни всё, что мешает дышать. Андрей помог увидеть, где я сам себе враг.»</blockquote>
             <div class="testimonial-author">
@@ -830,7 +1026,7 @@
         </div>
         <!-- Review 3 -->
         <div class="testimonial-card fade-up" style="transition-delay: 0.2s;">
-            <img src="otz02.jpg" alt="Отзыв клиента" style="width:100%; border-radius:12px; margin-bottom:16px;" onerror="this.style.display='none'">
+            <img src="otz02.jpg" alt="Отзыв клиента" loading="lazy" style="width:100%; border-radius:12px; margin-bottom:16px;" onerror="this.style.display='none'">
             <div class="testimonial-stars">★★★★★</div>
             <blockquote>«Выгорание прошло после нескольких сессий. Я снова чувствую энергию и вдохновение. Инструменты, которые я использую каждый день.»</blockquote>
             <div class="testimonial-author">
@@ -848,45 +1044,130 @@
 <section id="contact" class="cta-section">
     <div class="cta-box fade-up">
         <h2>Готовы изменить мышление?</h2>
-        <p>Напишите в Telegram или ВКонтакте, чтобы записаться на консультацию</p>
+        <p>Напишите в Telegram — расскажу про формат, отвечу на вопросы, предложу удобное время. Обычно отвечаю в течение 2–3 часов днём.</p>
         <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap; position:relative;">
-            <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="btn-primary">Написать в Telegram</a>
-            <a href="https://vk.com/andrupsy" target="_blank" rel="noopener noreferrer" class="btn-secondary">Написать в ВКонтакте</a>
+            <a href="https://t.me/andreyjurievich" target="_blank" rel="noopener noreferrer" class="btn-primary btn-tg" data-track="cta_final_tg">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+                Написать в Telegram
+            </a>
+            <a href="https://vk.com/andrupsy" target="_blank" rel="noopener noreferrer" class="btn-secondary" data-track="cta_final_vk">ВКонтакте</a>
         </div>
     </div>
 </section>
 
-<!-- SVG WAVE -->
-<div class="svg-footer" style="width:100%; overflow:hidden; margin-top:-1px;">
-    <svg viewBox="0 0 1440 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display:block; width:100%; height:100px;">
+<!-- NEURO BRAIN ANIMATION -->
+<div class="neuro-anim">
+    <svg viewBox="0 0 1440 320" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="neuro-svg">
         <defs>
-            <linearGradient id="waveGradIdx" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#C4663A;stop-opacity:0.25"/>
-                <stop offset="50%" style="stop-color:#D4A843;stop-opacity:0.15"/>
-                <stop offset="100%" style="stop-color:#C4663A;stop-opacity:0.25"/>
+            <radialGradient id="naGlow" cx="50%" cy="50%" r="55%">
+                <stop offset="0%" stop-color="#C4663A" stop-opacity="0.2"/>
+                <stop offset="45%" stop-color="#D4A843" stop-opacity="0.08"/>
+                <stop offset="100%" stop-color="#1A1208" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="naConn" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#C4663A" stop-opacity="0.08"/>
+                <stop offset="50%" stop-color="#D4A843" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#C4663A" stop-opacity="0.08"/>
             </linearGradient>
+            <linearGradient id="naWave" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#C4663A" stop-opacity="0"/>
+                <stop offset="50%" stop-color="#D4A843" stop-opacity="0.85"/>
+                <stop offset="100%" stop-color="#C4663A" stop-opacity="0"/>
+            </linearGradient>
+            <filter id="naGlowF" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="2"/>
+            </filter>
         </defs>
-        <path fill="url(#waveGradIdx)" opacity="0.5">
-            <animate attributeName="d"
-                values="M0,120 C360,180 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,200 L0,200 Z;
-                        M0,100 C360,40 720,160 1080,80 C1260,50 1380,130 1440,100 L1440,200 L0,200 Z;
-                        M0,120 C360,180 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,200 L0,200 Z"
-                dur="8s" repeatCount="indefinite"/>
-        </path>
-        <path fill="#FAF7F2" opacity="0.4">
-            <animate attributeName="d"
-                values="M0,160 C240,140 480,180 720,160 C960,140 1200,180 1440,160 L1440,200 L0,200 Z;
-                        M0,170 C240,180 480,140 720,170 C960,180 1200,140 1440,170 L1440,200 L0,200 Z;
-                        M0,160 C240,140 480,180 720,160 C960,140 1200,180 1440,160 L1440,200 L0,200 Z"
-                dur="7s" repeatCount="indefinite"/>
-        </path>
-        <circle cx="300" cy="155" r="4" fill="#C4663A" opacity="0.35">
-            <animate attributeName="cy" values="155;135;155" dur="4s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="900" cy="160" r="3" fill="#D4A843" opacity="0.3">
-            <animate attributeName="cy" values="160;140;160" dur="5s" repeatCount="indefinite"/>
-        </circle>
+
+        <rect width="1440" height="320" fill="url(#naGlow)"/>
+
+        <!-- Connections -->
+        <g class="na-conn" stroke="url(#naConn)" stroke-width="1.2" stroke-linecap="round" fill="none">
+            <line x1="570" y1="105" x2="615" y2="90"/>
+            <line x1="615" y1="90"  x2="660" y2="100"/>
+            <line x1="570" y1="105" x2="550" y2="145"/>
+            <line x1="615" y1="90"  x2="600" y2="135"/>
+            <line x1="660" y1="100" x2="690" y2="145"/>
+            <line x1="550" y1="145" x2="600" y2="135"/>
+            <line x1="600" y1="135" x2="645" y2="130"/>
+            <line x1="645" y1="130" x2="690" y2="145"/>
+            <line x1="550" y1="145" x2="570" y2="185"/>
+            <line x1="600" y1="135" x2="615" y2="195"/>
+            <line x1="690" y1="145" x2="665" y2="185"/>
+            <line x1="570" y1="185" x2="615" y2="195"/>
+            <line x1="615" y1="195" x2="665" y2="185"/>
+
+            <line x1="780" y1="100" x2="825" y2="90"/>
+            <line x1="825" y1="90"  x2="870" y2="105"/>
+            <line x1="780" y1="100" x2="750" y2="145"/>
+            <line x1="825" y1="90"  x2="795" y2="130"/>
+            <line x1="870" y1="105" x2="890" y2="145"/>
+            <line x1="750" y1="145" x2="795" y2="130"/>
+            <line x1="795" y1="130" x2="840" y2="135"/>
+            <line x1="840" y1="135" x2="890" y2="145"/>
+            <line x1="750" y1="145" x2="775" y2="185"/>
+            <line x1="795" y1="130" x2="825" y2="195"/>
+            <line x1="890" y1="145" x2="870" y2="185"/>
+            <line x1="775" y1="185" x2="825" y2="195"/>
+            <line x1="825" y1="195" x2="870" y2="185"/>
+
+            <line class="na-bridge" x1="615" y1="90"  x2="825" y2="90"/>
+            <line class="na-bridge" x1="645" y1="130" x2="795" y2="130"/>
+            <line class="na-bridge" x1="615" y1="195" x2="825" y2="195"/>
+        </g>
+
+        <!-- Brainwave / ECG line -->
+        <path class="na-wave"
+              d="M 0 250 L 540 250 L 555 240 L 565 215 L 575 285 L 590 240 L 600 255 L 610 250 L 825 250 L 838 235 L 850 270 L 860 245 L 875 250 L 1440 250"
+              stroke="url(#naWave)" stroke-width="1.6" fill="none" opacity="0.75"/>
+
+        <!-- Nodes -->
+        <g class="na-nodes" filter="url(#naGlowF)">
+            <circle cx="570" cy="105" r="3.5"/>
+            <circle cx="615" cy="90"  r="4"/>
+            <circle cx="660" cy="100" r="3.5"/>
+            <circle cx="550" cy="145" r="3"/>
+            <circle cx="600" cy="135" r="3.5"/>
+            <circle cx="645" cy="130" r="3.5"/>
+            <circle cx="690" cy="145" r="3"/>
+            <circle cx="570" cy="185" r="3"/>
+            <circle cx="615" cy="195" r="4"/>
+            <circle cx="665" cy="185" r="3"/>
+
+            <circle cx="780" cy="100" r="3.5"/>
+            <circle cx="825" cy="90"  r="4"/>
+            <circle cx="870" cy="105" r="3.5"/>
+            <circle cx="750" cy="145" r="3"/>
+            <circle cx="795" cy="130" r="3.5"/>
+            <circle cx="840" cy="135" r="3.5"/>
+            <circle cx="890" cy="145" r="3"/>
+            <circle cx="775" cy="185" r="3"/>
+            <circle cx="825" cy="195" r="4"/>
+            <circle cx="870" cy="185" r="3"/>
+        </g>
+
+        <!-- Sparkles -->
+        <g class="na-spark">
+            <circle cx="180" cy="100" r="1.6"/>
+            <circle cx="270" cy="180" r="1.2"/>
+            <circle cx="340" cy="60"  r="1.6"/>
+            <circle cx="420" cy="210" r="1.2"/>
+            <circle cx="200" cy="230" r="1.3"/>
+            <circle cx="120" cy="160" r="1.2"/>
+            <circle cx="380" cy="130" r="1.4"/>
+            <circle cx="1080" cy="120" r="1.6"/>
+            <circle cx="1180" cy="60"  r="1.2"/>
+            <circle cx="1220" cy="200" r="1.3"/>
+            <circle cx="1320" cy="90"  r="1.6"/>
+            <circle cx="1380" cy="180" r="1.2"/>
+            <circle cx="1150" cy="230" r="1.3"/>
+            <circle cx="1060" cy="200" r="1.2"/>
+        </g>
     </svg>
+
+    <div class="neuro-caption">
+        <span>Разум</span><span class="dot">·</span><span>Нейронаука</span><span class="dot">·</span><span>ИИ</span>
+    </div>
 </div>
 
 <!-- FOOTER -->
@@ -919,6 +1200,10 @@
             <a href="https://vk.com/andrupsy" target="_blank" rel="noopener noreferrer">ВКонтакте</a>
         </div>
     </div>
+    <div class="footer-legal" style="padding-top:20px; margin-top:8px; border-top:1px solid rgba(196,102,58,0.08); font-size:0.78rem; color:var(--text-muted); line-height:1.7;">
+        <strong style="color:var(--text);">Индыков Андрей Юрьевич</strong> · Самозанятый, плательщик НПД<br>
+        ИНН 366307209923 · г. Воронеж · Консультационные услуги в сфере психологии и нейрокоучинга
+    </div>
     <div class="footer-bottom">
         <span>© 2026 НейроИндыков. Все права защищены.</span>
         <span>Сделано с 🧠 и ❤️</span>
@@ -926,27 +1211,44 @@
     </div>
 </footer>
 
+<!-- STICKY CTA -->
+<a id="sticky-cta" class="sticky-cta" href="https://t.me/andreyjurievich?text=Хочу%20записаться%20на%20диагностику" target="_blank" rel="noopener noreferrer" data-track="cta_sticky">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+    Записаться
+</a>
+
 <!-- COOKIE BANNER -->
 <div id="cookie-banner" style="position:fixed; bottom:0; left:0; right:0; z-index:300; background:var(--brown-dark); color:var(--cream); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; font-size:0.85rem; box-shadow:0 -4px 20px rgba(0,0,0,0.2);">
-    <p style="margin:0; flex:1; min-width:200px;">Этот сайт использует файлы cookie для улучшения работы. Продолжая использовать сайт, вы соглашаетесь с <a href="privacy.html" style="color:var(--gold); text-decoration:underline;">политикой конфиденциальности</a>.</p>
-    <button onclick="document.getElementById('cookie-banner').style.display='none'; localStorage.setItem('cookie accepted', 'true');" style="background:var(--terracotta); color:#fff; border:none; padding:10px 24px; border-radius:50px; cursor:pointer; font-weight:600; white-space:nowrap;">Принять</button>
+    <p style="margin:0; flex:1; min-width:200px;">Сайт использует cookie для аналитики и работы интерфейса. Продолжая использовать сайт, вы соглашаетесь с <a href="privacy.html" style="color:var(--gold); text-decoration:underline;">политикой конфиденциальности</a>.</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="cookie-accept" style="background:var(--terracotta); color:#fff; border:none; padding:10px 24px; border-radius:50px; cursor:pointer; font-weight:600; white-space:nowrap;">Принять</button>
+        <button id="cookie-decline" style="background:transparent; color:var(--cream); border:1.5px solid rgba(245,237,227,0.3); padding:9px 22px; border-radius:50px; cursor:pointer; font-weight:500; white-space:nowrap;">Только необходимые</button>
+    </div>
 </div>
 
 <script>
-    // Hide cookie banner if accepted
-    if (localStorage.getItem('cookie accepted') === 'true') {
-        document.getElementById('cookie-banner').style.display = 'none';
-    }
+    // Cookie banner
+    (function() {
+        const KEY = 'cookieConsent';
+        const banner = document.getElementById('cookie-banner');
+        if (localStorage.getItem(KEY)) {
+            banner.style.display = 'none';
+        } else {
+            document.getElementById('cookie-accept').onclick = () => {
+                localStorage.setItem(KEY, 'accepted');
+                banner.style.display = 'none';
+            };
+            document.getElementById('cookie-decline').onclick = () => {
+                localStorage.setItem(KEY, 'declined');
+                banner.style.display = 'none';
+            };
+        }
+    })();
 
     // Navbar scroll
     window.addEventListener('scroll', () => {
         document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
-    });
-
-    // Smooth scroll
-    function scrollTo(sel) {
-        document.querySelector(sel)?.scrollIntoView({ behavior: 'smooth' });
-    }
+    }, { passive: true });
 
     // Fade-up on scroll
     const observer = new IntersectionObserver((entries) => {
@@ -963,8 +1265,67 @@
                 el.style.backgroundPositionY = `${scrolled * 0.3}px`;
             }
         });
+    }, { passive: true });
+
+    // Sticky CTA visibility — show after first screen
+    const stickyCta = document.getElementById('sticky-cta');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > window.innerHeight * 0.6) {
+            stickyCta.classList.add('visible');
+        } else {
+            stickyCta.classList.remove('visible');
+        }
+    }, { passive: true });
+
+    // Outbound click tracker — отправляет события в Яндекс.Метрику и VK Pixel
+    const YM_ID = 110070883;
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href^="https://t.me/"], a[href^="https://vk.com/"], a[data-track]');
+        if (!link) return;
+        const label = link.dataset.track || (link.href.includes('t.me') ? 'tg_link' : 'vk_link');
+        if (window.ym) {
+            window.ym(YM_ID, 'reachGoal', label);
+        }
+        if (window._tmr) {
+            window._tmr.push({ type: 'reachGoal', id: window.VK_PIXEL_ID, goal: label });
+        }
     });
 </script>
+
+<!-- ============================================
+     ANALYTICS
+     ============================================ -->
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=110070883', 'ym');
+
+    ym(110070883, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/110070883" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+<!-- Top.Mail.Ru / VK Pixel -->
+<script type="text/javascript">
+    window.VK_PIXEL_ID = "3775107";
+    var _tmr = window._tmr || (window._tmr = []);
+    _tmr.push({id: "3775107", type: "pageView", start: (new Date()).getTime()});
+    (function (d, w, id) {
+      if (d.getElementById(id)) return;
+      var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+      ts.src = "https://top-fwz1.mail.ru/js/code.js";
+      var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+      if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+    })(document, window, "tmr-code");
+</script>
+<noscript><div><img src="https://top-fwz1.mail.ru/counter?id=3775107;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div></noscript>
+<!-- /Top.Mail.Ru counter -->
+
 
 </body>
 </html>
