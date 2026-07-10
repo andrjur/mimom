@@ -1,61 +1,17 @@
-
-<!DOCTYPE html>
-<html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="https://indikov.ru/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Соционический Типировщик — НейроИндыков</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'brand-bg': '#F7F6F2',
-              'brand-surface': '#FFFFFF',
-              'brand-primary': '#8D4F30',
-              'brand-secondary': '#B36D4B',
-              'brand-accent': '#8D4F30',
-              'brand-gold': '#C5933C',
-              'brand-gold-light': '#E9CB76',
-              'brand-green': '#3B684B',
-              'brand-green-light': '#588E6A',
-              'brand-text': '#1E1A17',
-              'brand-text-secondary': '#6B645D',
-              'brand-dark': '#14110F',
-              'brand-cream-dark': '#E3DCD5',
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              serif: ['Playfair Display', 'serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-            }
-          }
+<!DOCTYPE html><html lang="ru">  <head>    <meta charset="UTF-8" />    <link rel="icon" type="image/png" href="https://indikov.ru/favicon.png" />    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <title>Соционический Типировщик — НейроИндыков</title>        <!-- Google Fonts -->    <link rel="preconnect" href="https://fonts.googleapis.com">    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">    <!-- Umami Analytics -->    <script defer src="https://cloud.umami.is/script.js" data-website-id="a295023d-59e1-4b96-9b40-740c16625537"></script>        <script src="https://cdn.tailwindcss.com"></script>    <script>      tailwind.config = { darkMode: 'class',        theme: {          extend: {            colors: {              'brand-bg': 'var(--brand-bg)',              'brand-surface': 'var(--brand-surface)',              'brand-primary': 'var(--brand-primary)',              'brand-secondary': 'var(--brand-secondary)',              'brand-accent': 'var(--brand-accent)',              'brand-gold': 'var(--brand-gold)',              'brand-gold-light': 'var(--brand-gold-light)',              'brand-green': 'var(--brand-green)',              'brand-green-light': 'var(--brand-green-light)',              'brand-text': 'var(--brand-text)',              'brand-text-secondary': 'var(--brand-text-secondary)',              'brand-dark': 'var(--brand-dark)',              'brand-cream-dark': 'var(--brand-cream-dark)',            },            fontFamily: {              sans: ['Inter', 'sans-serif'],              serif: ['Playfair Display', 'serif'],              mono: ['JetBrains Mono', 'monospace'],            }          }        }      }    </script>    <script>
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && (event.reason.message || '').includes('WebSocket')) {
+          event.preventDefault();
         }
-      }
-    </script>
-
-    <script type="importmap">
-    {
-      "imports": {
-        "react/": "https://aistudiocdn.com/react@^19.1.1/",
-        "react": "https://aistudiocdn.com/react@^19.1.1",
-        "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0"
-      }
-    }
-    </script>
-    <script type="module" crossorigin src="/sociotyper/assets/index-DnazhciY.js"></script>
-    <link rel="stylesheet" crossorigin href="/sociotyper/assets/index-DRtAlGbT.css">
-  </head>
-  <body class="bg-brand-bg text-brand-text antialiased">
-    <div id="root"></div>
-  </body>
-</html>
+      });
+      const originalError = console.error;
+      console.error = function(...args) {
+        const str = args.map(a => (a instanceof Error ? a.message : String(a))).join(' ');
+        if (str.includes('[vite]') && str.includes('websocket')) return;
+        if (str.includes('WebSocket closed without opened')) return;
+        originalError.apply(console, args);
+      };
+    </script>    <script type="importmap">    {      "imports": {        "react/": "https://aistudiocdn.com/react@^19.1.1/",        "react": "https://aistudiocdn.com/react@^19.1.1",        "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0"      }    }    </script>
+    <script type="module" crossorigin src="/sociotyper/assets/index-Bq1z7D9B.js"></script>
+    <link rel="stylesheet" crossorigin href="/sociotyper/assets/index-C7oZdjED.css">
+  </head>  <body class="bg-brand-bg text-brand-text antialiased">    <div id="root"></div>      </body></html>
