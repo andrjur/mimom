@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
+  <defs>
+    <linearGradient id="cu" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#B87333"/>
+      <stop offset="50%" stop-color="#DA8A67"/>
+      <stop offset="100%" stop-color="#B87333"/>
+    </linearGradient>
+  </defs>
+  <rect width="130" height="70" fill="#1A1210" rx="4"/>
+  <!-- Top: A.ИНДЫКОВ -->
+  <rect x="10" y="8" width="30" height="22" rx="3" fill="#B87333" opacity="0.2"/>
+  <text x="12" y="24" font-family="Georgia, serif" font-size="15" font-weight="400" fill="#B87333" letter-spacing="1">A.</text>
+  <text x="28" y="24" font-family="Georgia, serif" font-size="15" font-weight="300" fill="#B87333" letter-spacing="0">Индыков</text>
+  <!-- Bottom: A.Indikov.ru -->
+  <rect x="10" y="36" width="25" height="22" rx="3" fill="#B87333" opacity="0.2"/>
+  <text x="12" y="52" font-family="Georgia, serif" font-size="15" font-weight="400" fill="#B87333" letter-spacing="1">A.</text>
+  <text x="30" y="52" font-family="Georgia, serif" font-size="15" font-weight="300" fill="#B87333" letter-spacing="1.8">Indikov</text>
+  <text x="94" y="52" font-family="Georgia, serif" font-size="15" font-weight="300" fill="url(#cu)" letter-spacing="1">.ru</text>
+  <!-- Underline under Indikov.ru -->
+  <rect x="29" y="56" width="89" height="1.5" fill="#B87333" opacity="0.6"/>
+</svg>

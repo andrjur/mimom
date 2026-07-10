@@ -11,19 +11,19 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --mint: #4A9A7D;
-            --mint-light: #6BB89E;
-            --mint-dark: #2D7A5E;
-            --mint-bg: rgba(74, 154, 125, 0.06);
-            --sage: #8FAE8B;
-            --sage-light: #B5CFB2;
-            --forest: #2C5530;
-            --cream: #F2F7F4;
-            --cream-dark: #E0EBE3;
-            --bg: #F7FAF8;
-            --bg-card: #FFFFFF;
-            --text: #1A2E1F;
-            --text-muted: #5A7A60;
+            --mint: #B87333;
+            --mint-light: #DA8A67;
+            --mint-dark: #8B5A2B;
+            --mint-bg: rgba(184, 115, 51, 0.1);
+            --sage: #DA8A67;
+            --sage-light: #E8B88A;
+            --forest: #1A1210;
+            --cream: #F5EDE3;
+            --cream-dark: #E8DDD0;
+            --bg: #1A1210;
+            --bg-card: #2A1F1A;
+            --text: #F5EDE3;
+            --text-muted: #9A8B7D;
             --radius: 16px;
         }
 
@@ -44,14 +44,15 @@
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
             padding: 16px 24px;
             display: flex; align-items: center; justify-content: space-between;
-            background: rgba(250, 247, 242, 0.9);
+            background: rgba(26, 18, 16, 0.95);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(91, 168, 139, 0.1);
+            border-bottom: 1px solid rgba(184, 115, 51, 0.2);
             transition: all 0.3s;
         }
         nav.scrolled { padding: 10px 24px; background: rgba(250, 247, 242, 0.97); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
 
-        .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; }
+        .logo { display: flex; align-items: center; }
+        .logo img { height: 55px; width: auto; display: block; }
         .logo a { color: var(--mint); text-decoration: none; }
 
         .nav-links { display: flex; gap: 24px; list-style: none; }
@@ -303,7 +304,7 @@
 
 <!-- NAV -->
 <nav id="navbar">
-    <div class="logo"><a href="index.html">НейроИндыков</a></div>
+    <div class="logo"><a href="https://www.indikov.ru" target="_blank"><img src="qwen2.svg" alt="ИИндыков"></a></div>
     <ul class="nav-links">
         <li><a href="index.html">Андрей</a></li>
         <li><a href="#about">О проекте</a></li>
@@ -542,7 +543,7 @@
 <footer>
     <div class="footer-grid">
         <div class="footer-brand">
-            <div class="logo"><a href="index.html">НейроИндыков</a></div>
+            <div class="logo"><a href="https://www.indikov.ru" target="_blank"><img src="qwen2.svg" alt="ИИндыков"></a></div>
             <p>Бережный коучинг в паре. Андрей и Юля — два практика, которые дополняют друг друга.</p>
         </div>
         <div class="footer-col">
@@ -559,7 +560,7 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <span>© 2026 НейроИндыков. Все права защищены.</span>
+        <span>© 2026 ИИндыков. Все права защищены.</span>
         <span>Сделано с 🧠 и ❤️</span>
         <span><a href="privacy.html">Политика конфиденциальности</a></span>
     </div>
