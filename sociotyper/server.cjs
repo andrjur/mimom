@@ -38,7 +38,7 @@ async function startServer() {
       if (!shareId && !process.env.UMAMI_API_KEY) {
         return res.status(400).json({ error: "Share ID or UMAMI_API_KEY is required" });
       }
-      let headers = {
+      const headers = {
         "Content-Type": "application/json"
       };
       if (shareId) {
@@ -66,8 +66,9 @@ async function startServer() {
       const stats = await statsRes.json();
       res.json(stats);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: error.message });
+      const err = error;
+      console.error(err.message || error);
+      res.status(500).json({ error: err.message || "Unknown error" });
     }
   });
   if (process.env.NODE_ENV !== "production") {
