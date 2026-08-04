@@ -82,8 +82,7 @@ var chatSchema = {
 app.post("/api/gemini/analyze", async (req, res) => {
   try {
     const { monologue, lockedDichotomies, chatHistory, lockedPsychosophy, audioData, apiKey, model } = req.body;
-    let keyToUse = apiKey || process.env.GEMINI_API_KEY;
-    if (keyToUse && keyToUse.startsWith("AQ.")) keyToUse = "";
+    const keyToUse = apiKey || process.env.GEMINI_API_KEY;
     if (!keyToUse) {
       return res.status(400).json({ error: "API_KEY_MISSING", message: "API key is required. Please provide it in settings or environment." });
     }
@@ -156,14 +155,17 @@ ${monologue}`;
     res.json(JSON.parse(response.text || "{}"));
   } catch (error) {
     console.error("Gemini Analyze Error:", error);
-    res.status(500).json({ error: error.name || "Error", message: error.message || "Failed to analyze monologue" });
+    let errorMessage = error.message || "Failed to analyze monologue";
+    if (errorMessage.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") || errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("401") || errorMessage.includes("403")) {
+      errorMessage = "\u041E\u0448\u0438\u0431\u043A\u0430 \u0430\u0432\u0442\u043E\u0440\u0438\u0437\u0430\u0446\u0438\u0438 API. \u0423\u0431\u0435\u0434\u0438\u0442\u0435\u0441\u044C, \u0447\u0442\u043E \u0432\u044B \u0432\u0432\u0435\u043B\u0438 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u044B\u0439 API \u043A\u043B\u044E\u0447 \u0432 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430\u0445 (\u0438\u043B\u0438 \u043E\u043D \u0437\u0430\u0434\u0430\u043D \u0432 \u043F\u0435\u0440\u0435\u043C\u0435\u043D\u043D\u044B\u0445 \u043E\u043A\u0440\u0443\u0436\u0435\u043D\u0438\u044F), \u0438 \u0447\u0442\u043E \u043E\u043D \u0438\u043C\u0435\u0435\u0442 \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u043C\u043E\u0434\u0435\u043B\u0438.";
+    }
+    res.status(500).json({ error: error.name || "Error", message: errorMessage });
   }
 });
 app.post("/api/gemini/transcribe", async (req, res) => {
   try {
     const { base64Data, mimeType, apiKey } = req.body;
-    let keyToUse = apiKey || process.env.GEMINI_API_KEY;
-    if (keyToUse && keyToUse.startsWith("AQ.")) keyToUse = "";
+    const keyToUse = apiKey || process.env.GEMINI_API_KEY;
     if (!keyToUse) {
       return res.status(400).json({ error: "API_KEY_MISSING", message: "API key is required." });
     }
@@ -191,14 +193,17 @@ app.post("/api/gemini/transcribe", async (req, res) => {
     res.json({ text: response.text || "" });
   } catch (error) {
     console.error("Gemini Transcribe Error:", error);
-    res.status(500).json({ error: error.name || "Error", message: error.message || "Failed to transcribe audio" });
+    let errorMessage = error.message || "Failed to transcribe audio";
+    if (errorMessage.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") || errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("401") || errorMessage.includes("403")) {
+      errorMessage = "\u041E\u0448\u0438\u0431\u043A\u0430 \u0430\u0432\u0442\u043E\u0440\u0438\u0437\u0430\u0446\u0438\u0438 API. \u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E\u0441\u0442\u044C API \u043A\u043B\u044E\u0447\u0430.";
+    }
+    res.status(500).json({ error: error.name || "Error", message: errorMessage });
   }
 });
 app.post("/api/gemini/chat", async (req, res) => {
   try {
     const { historyOrQuestion, result, selectedTim, apiKey, model } = req.body;
-    let keyToUse = apiKey || process.env.GEMINI_API_KEY;
-    if (keyToUse && keyToUse.startsWith("AQ.")) keyToUse = "";
+    const keyToUse = apiKey || process.env.GEMINI_API_KEY;
     if (!keyToUse) {
       return res.status(400).json({ error: "API_KEY_MISSING", message: "API key is required." });
     }
@@ -238,14 +243,17 @@ ${chatContext}
     res.json(JSON.parse(response.text || "{}"));
   } catch (error) {
     console.error("Gemini Chat Error:", error);
-    res.status(500).json({ error: error.name || "Error", message: error.message || "Failed to generate chat response" });
+    let errorMessage = error.message || "Failed to generate chat response";
+    if (errorMessage.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") || errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("401") || errorMessage.includes("403")) {
+      errorMessage = "\u041E\u0448\u0438\u0431\u043A\u0430 \u0430\u0432\u0442\u043E\u0440\u0438\u0437\u0430\u0446\u0438\u0438 API. \u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E\u0441\u0442\u044C API \u043A\u043B\u044E\u0447\u0430.";
+    }
+    res.status(500).json({ error: error.name || "Error", message: errorMessage });
   }
 });
 app.post("/api/gemini/compatibility", async (req, res) => {
   try {
     const { name1, tim1, psycho1, name2, tim2, psycho2, relationContext, apiKey, model } = req.body;
-    let keyToUse = apiKey || process.env.GEMINI_API_KEY;
-    if (keyToUse && keyToUse.startsWith("AQ.")) keyToUse = "";
+    const keyToUse = apiKey || process.env.GEMINI_API_KEY;
     if (!keyToUse) {
       return res.status(400).json({ error: "API_KEY_MISSING", message: "API key is required." });
     }
@@ -271,14 +279,17 @@ app.post("/api/gemini/compatibility", async (req, res) => {
     res.json({ text: response.text || "\u0410\u043D\u0430\u043B\u0438\u0437 \u043D\u0435 \u0443\u0434\u0430\u043B\u0441\u044F." });
   } catch (error) {
     console.error("Gemini Compatibility Error:", error);
-    res.status(500).json({ error: error.name || "Error", message: error.message || "Failed to analyze compatibility" });
+    let errorMessage = error.message || "Failed to analyze compatibility";
+    if (errorMessage.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") || errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("401") || errorMessage.includes("403")) {
+      errorMessage = "\u041E\u0448\u0438\u0431\u043A\u0430 \u0430\u0432\u0442\u043E\u0440\u0438\u0437\u0430\u0446\u0438\u0438 API. \u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E\u0441\u0442\u044C API \u043A\u043B\u044E\u0447\u0430.";
+    }
+    res.status(500).json({ error: error.name || "Error", message: errorMessage });
   }
 });
 app.post("/api/gemini/motivation", async (req, res) => {
   try {
     const { name, tim, psychosophy, apiKey, model } = req.body;
-    let keyToUse = apiKey || process.env.GEMINI_API_KEY;
-    if (keyToUse && keyToUse.startsWith("AQ.")) keyToUse = "";
+    const keyToUse = apiKey || process.env.GEMINI_API_KEY;
     if (!keyToUse) {
       return res.status(400).json({ error: "API_KEY_MISSING", message: "API key is required." });
     }
@@ -302,7 +313,11 @@ app.post("/api/gemini/motivation", async (req, res) => {
     res.json({ text: response.text || "\u0410\u043D\u0430\u043B\u0438\u0437 \u043D\u0435 \u0443\u0434\u0430\u043B\u0441\u044F." });
   } catch (error) {
     console.error("Gemini Motivation Error:", error);
-    res.status(500).json({ error: error.name || "Error", message: error.message || "Failed to analyze motivation" });
+    let errorMessage = error.message || "Failed to analyze motivation";
+    if (errorMessage.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") || errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("401") || errorMessage.includes("403")) {
+      errorMessage = "\u041E\u0448\u0438\u0431\u043A\u0430 \u0430\u0432\u0442\u043E\u0440\u0438\u0437\u0430\u0446\u0438\u0438 API. \u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E\u0441\u0442\u044C API \u043A\u043B\u044E\u0447\u0430.";
+    }
+    res.status(500).json({ error: error.name || "Error", message: errorMessage });
   }
 });
 app.get("/api/umami/stats", async (req, res) => {
