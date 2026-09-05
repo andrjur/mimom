@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title %}{{ page.title }} — {% endif %}Андрей Индыков</title>
+  <meta name="description" content="{{ page.description | default: site.description | escape }}">
+  <meta name="theme-color" content="#10213d">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/articles.css">
+  <script defer src="/assets/article-tests.js"></script>
+</head>
+<body>
+  {% include site-nav.html %}
+  {{ content }}
+  <footer class="footer"><div class="container footer__grid"><div><strong>Андрей Индыков</strong><p>Сложное — в понятную систему.</p></div><nav><a href="/">Главная</a><a href="/school/">Школа</a><a href="/articles/">Статьи</a></nav><p class="footer__note">Образовательные материалы не заменяют медицинскую или психотерапевтическую помощь.</p></div></footer>
+</body>
+</html>

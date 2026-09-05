@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Диагностика готовности к ОГЭ и ЕГЭ — Андрей Индыков</title>
+  <meta name="description" content="10 вопросов о подготовке к ОГЭ и ЕГЭ. Оцените риски и получите первые шаги без регистрации.">
+  <meta name="theme-color" content="#10213d">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script defer src="assets/app.js"></script>
+</head>
+<body class="subpage">
+  <a class="skip-link" href="#main">К содержанию</a>
+  <header class="site-header" data-header>
+    <div class="container header-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">АИ</span><span><strong>Андрей Индыков</strong><small>преподаватель · физик · IT-практик</small></span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="main-nav" data-menu>Меню</button>
+      <nav id="main-nav" class="main-nav" data-nav><a href="index.html#approach">Как занимаемся</a><a href="prompts.html">10 промптов</a><a class="nav-cta" href="index.html">На главную</a></nav>
+    </div>
+  </header>
+  <main id="main">
+    <section class="sub-hero">
+      <div class="container">
+        <p class="eyebrow">Без регистрации · 5 минут</p>
+        <h1>Насколько подготовка сейчас управляемая?</h1>
+        <p>Это не тест знаний и не прогноз балла. Он показывает, есть ли у ученика рабочая система: цель, карта тем, ритм и разбор ошибок.</p>
+      </div>
+    </section>
+    <section class="sub-content">
+      <div class="container tool-shell">
+        <form class="panel" data-diagnostic>
+          <div class="select-row">
+            <label>Предмет<select name="subject" required><option>Математика</option><option>Физика</option><option>Информатика</option><option>Несколько предметов</option></select></label>
+            <label>Класс<select name="grade" required><option>7 класс</option><option>8 класс</option><option>9 класс · ОГЭ</option><option>10 класс</option><option>11 класс · ЕГЭ</option></select></label>
+          </div>
+          <div class="progress-label"><span>Заполнено</span><span data-progress-text>0 из 10</span></div>
+          <div class="progress-track"><div class="progress-bar" data-progress></div></div>
+
+          <fieldset class="question" data-question><legend>1. Есть точная цель на ближайший контрольный срез?</legend><div class="choice-grid"><label><input type="radio" name="q1" value="0"><span>Да, в баллах и дате</span></label><label><input type="radio" name="q1" value="1"><span>Примерно</span></label><label><input type="radio" name="q1" value="2"><span>Нет</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>2. Известно, какие темы уже решаются без подсказки?</legend><div class="choice-grid"><label><input type="radio" name="q2" value="0"><span>Есть список</span></label><label><input type="radio" name="q2" value="1"><span>По ощущениям</span></label><label><input type="radio" name="q2" value="2"><span>Неизвестно</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>3. Есть список тем, на которых теряются баллы?</legend><div class="choice-grid"><label><input type="radio" name="q3" value="0"><span>Да, конкретный</span></label><label><input type="radio" name="q3" value="1"><span>Частично</span></label><label><input type="radio" name="q3" value="2"><span>Нет</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>4. Ученик занимается по устойчивому недельному ритму?</legend><div class="choice-grid"><label><input type="radio" name="q4" value="0"><span>Почти всегда</span></label><label><input type="radio" name="q4" value="1"><span>С перебоями</span></label><label><input type="radio" name="q4" value="2"><span>Рывками</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>5. После ошибки выясняется её причина?</legend><div class="choice-grid"><label><input type="radio" name="q5" value="0"><span>Да, фиксируем</span></label><label><input type="radio" name="q5" value="1"><span>Иногда</span></label><label><input type="radio" name="q5" value="2"><span>Смотрим ответ и дальше</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>6. Может ли ученик объяснить решение своими словами?</legend><div class="choice-grid"><label><input type="radio" name="q6" value="0"><span>Обычно да</span></label><label><input type="radio" name="q6" value="1"><span>С подсказкой</span></label><label><input type="radio" name="q6" value="2"><span>Чаще нет</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>7. Есть контрольные работы в условиях времени?</legend><div class="choice-grid"><label><input type="radio" name="q7" value="0"><span>Раз в 2–4 недели</span></label><label><input type="radio" name="q7" value="1"><span>Редко</span></label><label><input type="radio" name="q7" value="2"><span>Нет</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>8. Нейросеть используется после собственной попытки?</legend><div class="choice-grid"><label><input type="radio" name="q8" value="0"><span>Да</span></label><label><input type="radio" name="q8" value="1"><span>Не всегда</span></label><label><input type="radio" name="q8" value="2"><span>Часто вместо попытки</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>9. Родитель понимает прогресс без ежедневных допросов?</legend><div class="choice-grid"><label><input type="radio" name="q9" value="0"><span>Да, есть показатели</span></label><label><input type="radio" name="q9" value="1"><span>Иногда</span></label><label><input type="radio" name="q9" value="2"><span>Нет</span></label></div></fieldset>
+          <fieldset class="question" data-question><legend>10. Текущий результат приближается к цели?</legend><div class="choice-grid"><label><input type="radio" name="q10" value="0"><span>Да</span></label><label><input type="radio" name="q10" value="1"><span>Стоит на месте</span></label><label><input type="radio" name="q10" value="2"><span>Отстаёт или неизвестен</span></label></div></fieldset>
+
+          <button class="button button-primary" type="submit">Показать результат</button>
+        </form>
+        <aside class="panel sticky-panel">
+          <h2 style="font: 500 2rem/1.08 Georgia,serif">Что оцениваем</h2>
+          <ul class="sidebar-list"><li><strong>Цель</strong>Понятно, куда и к какому сроку идём.</li><li><strong>Карта</strong>Видны освоенные темы и пробелы.</li><li><strong>Процесс</strong>Есть ритм и самостоятельная работа.</li><li><strong>Обратная связь</strong>Ошибки превращаются в план.</li></ul>
+          <p class="privacy-note">Ответы обрабатываются только в вашем браузере. Сайт не сохраняет их и не передаёт третьим лицам.</p>
+          <a href="index.html#formats">Посмотреть форматы занятий ↗</a>
+        </aside>
+      </div>
+      <div class="container" style="margin-top:32px"><section class="result-card" aria-live="polite" data-result></section></div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container footer-grid"><div><strong>Андрей Индыков</strong><p>Математика · физика · информатика · ИИ</p></div><div><a href="https://vk.ru/andrupsy">ВКонтакте</a><a href="https://t.me/andreyjurievich">Telegram</a></div><p class="footer-note">Диагностика не является гарантией экзаменационного результата. © <span data-year>2026</span></p></div></footer>
+</body>
+</html>

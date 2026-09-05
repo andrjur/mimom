@@ -1,0 +1,19 @@
+---
+layout: default
+---
+<main class="post">
+  <header class="post__hero">
+    <div class="post__narrow">
+      <a class="post__back" href="/articles/">← Все статьи</a>
+      <p class="kicker kicker--light">{{ page.category | default: "Статья" }}</p>
+      <h1>{{ page.title }}</h1>
+      {% if page.description %}<p class="post__lead">{{ page.description }}</p>{% endif %}
+      <p class="post__meta">{{ page.date | date: "%d.%m.%Y" }} · Андрей Индыков</p>
+    </div>
+  </header>
+  <article class="post__body post__narrow">
+    {{ content }}
+    <aside class="post__cta"><p class="kicker">Следующий шаг</p><h2>Нужен разбор вашей ситуации?</h2><p>Напишите слово «СФЕРЫ» — подскажу подходящую диагностику или материал.</p><a class="button button--ink" href="https://vk.ru/andrupsy?w=mail&amp;text=%D0%A1%D0%A4%D0%95%D0%A0%D0%AB" target="_blank" rel="noopener">Написать во ВКонтакте</a></aside>
+  </article>
+</main>
+

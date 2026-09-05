@@ -1,0 +1,14 @@
+title: "Андрей Индыков"
+description: "Учёба, практический ИИ, типологии и продуктивность"
+url: "https://indikov.ru"
+baseurl: ""
+lang: ru
+timezone: Europe/Moscow
+permalink: /articles/:title/
+markdown: kramdown
+exclude:
+  - README.md
+  - ADD_ARTICLE.md
+  - DEPLOY_MIMOM.md
+  - TYPOLOGIST_PLAN.md
+  - tools

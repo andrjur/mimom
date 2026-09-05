@@ -1,0 +1,14 @@
+---
+layout: default
+title: Статьи
+description: Практические статьи Андрея Индыкова об учёбе, ИИ, типологиях и продуктивности.
+---
+<main class="article-listing">
+  <section class="listing-hero"><div class="container"><p class="kicker kicker--light">Блог</p><h1>Разборы без информационного шума</h1><p>Учёба, ИИ, типологии и продуктивность. Один материал — одна понятная задача.</p></div></section>
+  <section class="section"><div class="container"><div class="article-grid">
+    {% for post in site.posts %}
+    <a class="article-card" href="{{ post.url }}"><span>{{ post.category | default: "Статья" }} · {{ post.date | date: "%d.%m.%Y" }}</span><h3>{{ post.title }}</h3><p>{{ post.description }}</p></a>
+    {% endfor %}
+  </div></div></section>
+</main>
+

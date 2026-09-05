@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>10 промптов для учёбы без списывания — Андрей Индыков</title>
+  <meta name="description" content="Готовые промпты для разбора задач, поиска ошибок, планирования и повторения. Нейросеть помогает думать, а не выдаёт готовый ответ.">
+  <meta name="theme-color" content="#10213d">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script defer src="assets/app.js"></script>
+</head>
+<body class="subpage">
+  <a class="skip-link" href="#main">К содержанию</a>
+  <header class="site-header" data-header>
+    <div class="container header-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">АИ</span><span><strong>Андрей Индыков</strong><small>преподаватель · физик · IT-практик</small></span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="main-nav" data-menu>Меню</button>
+      <nav id="main-nav" class="main-nav" data-nav><a href="diagnostics.html">Диагностика</a><a href="index.html#formats">Форматы</a><a class="nav-cta" href="index.html">На главную</a></nav>
+    </div>
+  </header>
+  <main id="main">
+    <section class="sub-hero">
+      <div class="container">
+        <p class="eyebrow">Лид-магнит · можно сохранить в PDF</p>
+        <h1>10 промптов, которые помогают учиться, а не списывать</h1>
+        <p>Вставьте условие задачи вместо квадратных скобок. Главное правило: сначала собственная попытка, затем вопрос нейросети.</p>
+        <button class="button button-gold" type="button" onclick="window.print()">Сохранить или распечатать</button>
+      </div>
+    </section>
+    <section class="sub-content">
+      <div class="container prompt-intro">
+        <div><p class="section-kicker">Правило ученика</p><h2>Проси следующий шаг</h2><p>Если нейросеть сразу решила всё, навык остался у нейросети. Просите одну подсказку и возвращайтесь к собственной попытке.</p></div>
+        <div><p class="section-kicker">Правило родителя</p><h2>Спрашивай про ход мысли</h2><p>Вместо «какая оценка?» спросите: «На какой ошибке ты сегодня поймал себя и что будешь проверять в следующий раз?»</p></div>
+      </div>
+      <div class="container prompt-grid">
+        <article class="prompt-card"><span class="prompt-no">01 · ПЕРВАЯ ПОДСКАЗКА</span><h2>Не решай за меня</h2><p class="prompt-text" id="p1">Я решаю задачу: [условие]. Не давай готовое решение и ответ. Задай мне один вопрос, который поможет выбрать первый шаг. После моего ответа проверь логику и дай следующую подсказку только при необходимости.</p><button class="copy-button" data-copy="p1">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">02 · ПОИСК ОШИБКИ</span><h2>Найди место сбоя</h2><p class="prompt-text" id="p2">Вот условие: [условие]. Вот моя попытка: [решение]. Не переписывай решение целиком. Укажи первую строку, где появилась ошибка, назови её тип и задай вопрос, который поможет мне исправить её самостоятельно.</p><button class="copy-button" data-copy="p2">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">03 · ПРОВЕРКА ПОНИМАНИЯ</span><h2>Попроси объяснить</h2><p class="prompt-text" id="p3">Я изучаю тему [тема]. Проведи короткую устную проверку: задай пять вопросов от простого к сложному по одному. После каждого ответа коротко скажи, что верно и чего не хватает. В конце назови один главный пробел.</p><button class="copy-button" data-copy="p3">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">04 · ПОХОЖАЯ ЗАДАЧА</span><h2>Сделай тренажёр</h2><p class="prompt-text" id="p4">Создай одну задачу, похожую по идее на эту: [условие], но с другими числами и контекстом. Не показывай решение. Сначала проверь мой ответ, затем попроси объяснить ход решения.</p><button class="copy-button" data-copy="p4">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">05 · ДВА СПОСОБА</span><h2>Сравни методы</h2><p class="prompt-text" id="p5">Покажи два корректных способа решить задачу [условие]. Для каждого назови ключевую идею, количество шагов и типичную ошибку. Затем спроси, какой способ я выберу на экзамене и почему.</p><button class="copy-button" data-copy="p5">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">06 · ФИЗИЧЕСКАЯ МОДЕЛЬ</span><h2>От явления к формулам</h2><p class="prompt-text" id="p6">Помоги разобрать физическую задачу [условие]. Сначала спроси, какое явление происходит и какие тела входят в модель. Не давай формулы, пока я сам не назову закон. Потом проверь единицы измерения и разумность ответа.</p><button class="copy-button" data-copy="p6">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">07 · КОД</span><h2>Отладь мышление</h2><p class="prompt-text" id="p7">Вот задача по программированию: [условие]. Вот мой код: [код]. Не пиши готовую программу. Придумай минимальный тест, на котором ошибка проявится, и попроси меня вручную пройти код по шагам. После этого дай одну подсказку.</p><button class="copy-button" data-copy="p7">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">08 · ЖУРНАЛ ОШИБОК</span><h2>Классифицируй ошибки</h2><p class="prompt-text" id="p8">Я пришлю список ошибок из пробника. Раздели их на четыре категории: знание темы, построение модели, вычисление или запись, невнимательность и стратегия времени. Для каждой категории предложи одно упражнение на неделю.</p><button class="copy-button" data-copy="p8">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">09 · ПЛАН НА НЕДЕЛЮ</span><h2>Собери короткий цикл</h2><p class="prompt-text" id="p9">Мой текущий результат: [балл]. Цель: [балл и дата]. Слабые темы: [список]. Есть [количество] минут в день. Составь план на семь дней: одна тема, практика, повторение ошибок и короткий контроль. Не добавляй больше двух задач на день.</p><button class="copy-button" data-copy="p9">Скопировать</button></article>
+        <article class="prompt-card"><span class="prompt-no">10 · ПРОВЕРКА ИИ</span><h2>Не верь первому ответу</h2><p class="prompt-text" id="p10">Проверь собственное решение задачи [условие] как строгий эксперт. Отдельно выпиши допущения, вычисления и итог. Для каждого пункта укажи, как его можно проверить независимо. Если не уверен, прямо отметь неопределённость.</p><button class="copy-button" data-copy="p10">Скопировать</button></article>
+      </div>
+      <div class="container">
+        <p class="print-note">Нейросеть может ошибаться. В экзаменационной подготовке сверяйте определения, формат заданий и критерии с материалами ФИПИ и преподавателем.</p>
+        <div style="margin-top:34px;text-align:center"><a class="button button-primary" href="diagnostics.html">Проверить систему подготовки</a></div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container footer-grid"><div><strong>Андрей Индыков</strong><p>Математика · физика · информатика · ИИ</p></div><div><a href="https://vk.ru/andrupsy">ВКонтакте</a><a href="https://t.me/andreyjurievich">Telegram</a></div><p class="footer-note">Можно свободно использовать для личной учёбы. © <span data-year>2026</span></p></div></footer>
+</body>
+</html>
