@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "indikov-typist-public-demo",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "../dist-public-demo",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "KNYAZEV_BASE_URL": "https://knyazevai.work/v1",
+    "KNYAZEV_MODEL": "deepseek-v4-flash",
+    "OBSERVATION_MODEL": "minimax-2.7",
+    "HYPOTHESIS_MODEL": "deepseek-v4-flash",
+    "CRITIC_MODEL": "minimax-2.7",
+    "FINAL_MODEL": "deepseek-v4-flash",
+    "QUESTION_MODEL": "minimax-2.7",
+    "STORE_DEBUG_PAYLOADS": "false",
+    "ALLOW_CUSTOM_BYOK": "false"
+  }
+}
