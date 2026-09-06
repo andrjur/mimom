@@ -69,10 +69,12 @@ h3 { margin-bottom: 13px; font-size: 1.35rem; }
 .brand strong { font-size: .95rem; }
 .brand small { margin-top: 5px; color: var(--muted); font-size: .68rem; }
 .wordmark { display: grid; justify-items: start; gap: 2px; line-height: 1; }
-.wordmark-name, .wordmark-url { display: block; font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+.wordmark-name, .wordmark-url { display: block; width: 132px; font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
 .wordmark-name { color: var(--ink); font-size: 1.12rem; }
-.wordmark-name b { color: var(--gold-dark); font-weight: 700; }
-.wordmark-url { color: var(--gold-dark); font-size: .76rem; text-decoration: underline; text-underline-offset: 2px; }
+.wordmark-name b, .wordmark-name i, .wordmark-url b, .wordmark-url i { color: var(--gold-dark); font-style: normal; font-weight: 700; }
+.wordmark-url { color: var(--ink); font-size: .76rem; display: flex; align-items: baseline; }
+.wordmark-url b { width: 18px; flex: 0 0 18px; text-decoration: none; }
+.wordmark-url u { flex: 1; text-decoration-thickness: 1.5px; text-underline-offset: 2px; white-space: nowrap; }
 .main-nav { display: flex; align-items: center; gap: 27px; font-size: .84rem; font-weight: 700; }
 .main-nav a { text-decoration: none; }
 .main-nav a:not(.nav-cta):hover { color: var(--gold-dark); }

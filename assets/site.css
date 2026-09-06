@@ -33,9 +33,12 @@ a { color: inherit; }
 .brand small { margin-top: 1px; color: var(--muted); font-size: 11px; }
 .wordmark { display: grid; justify-items: start; gap: 1px; line-height: 1; }
 .wordmark__name, .wordmark__url { display: block; font-family: var(--serif); font-weight: 700; }
+.wordmark__name { width: 132px; }
 .wordmark__name { color: var(--ink); font-size: 19px; }
-.wordmark__name b { color: var(--gold-dark); font-weight: 700; }
-.wordmark__url { color: var(--gold-dark); font-size: 13px; text-decoration: underline; text-underline-offset: 2px; }
+.wordmark__name b, .wordmark__name i, .wordmark__url b, .wordmark__url i { color: var(--gold-dark); font-style: normal; font-weight: 700; }
+.wordmark__url { color: var(--ink); font-size: 13px; display: flex; align-items: baseline; width: 158px; }
+.wordmark__url b { width: 19px; flex: 0 0 19px; text-decoration: none; }
+.wordmark__url u { flex: none; text-decoration-thickness: 1.5px; text-underline-offset: 2px; white-space: nowrap; letter-spacing: .085em; transform: scaleX(1.1); transform-origin: left center; }
 .nav { display: flex; align-items: center; gap: 24px; }
 .nav a { font-size: 13px; font-weight: 800; text-decoration: none; }
 .nav a:hover { color: var(--gold-dark); }
