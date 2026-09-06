@@ -7,7 +7,7 @@ description: Практические статьи Андрея Индыкова
   <section class="listing-hero"><div class="container"><p class="kicker kicker--light">Блог типолога</p><h1>Разборы без информационного шума</h1><p>Типологии, мышление, ИИ и продуктивность. Один материал — одна понятная задача или упражнение.</p></div></section>
   <section class="section"><div class="container"><div class="article-grid">
     {% for post in site.posts %}
-    <a class="article-card" href="{{ post.url }}"><span>{{ post.category | default: "Статья" }} · {{ post.date | date: "%d.%m.%Y" }}</span><h3>{{ post.title }}</h3><p>{{ post.description }}</p></a>
+    <a class="article-card" href="{{ post.url }}">{% if post.image %}<img class="article-card__image" src="{{ post.image }}" alt="" loading="lazy">{% endif %}<span>{{ post.category | default: "Статья" }} · {{ post.date | date: "%d.%m.%Y" }}</span><h3>{{ post.title }}</h3><p>{{ post.description }}</p></a>
     {% endfor %}
   </div></div></section>
 </main>

@@ -12,6 +12,12 @@ layout: default
     </div>
   </header>
   <article class="post__body post__narrow">
+    {% if page.image %}
+    <figure class="post__cover">
+      <img src="{{ page.image }}" alt="{{ page.image_alt | default: page.title }}" width="1600" height="1066">
+      {% if page.image_caption %}<figcaption>{{ page.image_caption }}</figcaption>{% endif %}
+    </figure>
+    {% endif %}
     {{ content }}
     <aside class="post__cta"><p class="kicker">Следующий шаг</p><h2>Нужен разбор вашей ситуации?</h2><p>Напишите слово «СФЕРЫ» — подскажу подходящую диагностику или материал.</p><a class="button button--ink" href="https://vk.ru/andrupsy?w=mail&amp;text=%D0%A1%D0%A4%D0%95%D0%A0%D0%AB" target="_blank" rel="noopener">Написать во ВКонтакте</a></aside>
   </article>
