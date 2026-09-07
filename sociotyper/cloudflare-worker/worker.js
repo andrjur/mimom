@@ -130,6 +130,28 @@ function resolveProvider(env, byok = {}) {
   };
 }
 
+function resolveProviders(env, byok = {}) {
+  if (byok.mode !== 'byok' || !Array.isArray(byok.connections) || !byok.connections.length) return [resolveProvider(env, byok)];
+  const active = byok.connections.filter(item => item && item.policy !== 'off');
+  if (!active.length) throw new Error('BYOK_KEY_MISSING');
+  return active.map(item => ({
+    ...resolveProvider(env, { ...byok, ...item, mode: 'byok' }),
+    connectionId: String(item.id || crypto.randomUUID()),
+    label: String(item.label || item.provider || 'API'),
+    policy: ['always', 'random', 'system'].includes(item.policy) ? item.policy : 'system',
+    omniCapable: Boolean(item.omniCapable)
+  }));
+}
+
+function providerTickets(providers) {
+  const tickets = [];
+  providers.forEach(provider => {
+    const count = provider.policy === 'always' ? 3 : provider.policy === 'system' ? 2 : 1;
+    for (let index = 0; index < count; index += 1) tickets.push(provider);
+  });
+  return tickets.length ? tickets : providers;
+}
+
 async function callTextModel(config, prompt, modelOverride, meta = {}) {
   const model = modelOverride || config.model;
   const startedAt = Date.now();
@@ -285,24 +307,37 @@ function probePrompt(source, probe) {
   return `${source}\n\nНЕЗАВИСИМАЯ ПРОВЕРКА ОДНОГО ИНФОРМАЦИОННОГО АСПЕКТА: ${probe.label}. Фокус: ${probe.focus}. Таблица Шанэри как дополнительная линза: ${probe.shaneri}. Позиции Модели А: ${MODEL_A_POSITIONS}. Не определяй ТИМ. Отличай свободное использование аспекта от демонстративной роли, выученного жаргона и болезненной компенсации. Приведи до трёх коротких цитат. Предложи не более двух возможных позиций функции и явно укажи, если различить их нельзя. JSON строго: {"probeId":"${probe.id}","label":"${probe.label}","manifestation":"strong|mixed|weak|insufficient","confidence":0,"positionHypotheses":[{"position":0,"confidence":0,"reason":""}],"evidence":[{"quote":"","observation":""}],"shadowSignals":[""],"giftSignals":[""],"missing":""}.`;
 }
 
-async function runProbeWave(env, provider, probes, source, modelPool, mixSeed, meta) {
+async function runProbeWave(env, providers, probes, source, mixSeed, meta) {
+  const tickets = providerTickets(providers);
   const settled = await Promise.allSettled(probes.map(async probe => {
+    const provider = tickets[stableModelIndex(mixSeed, `provider:${probe.id}`, tickets.length)];
+    const modelPool = provider.provider === 'knyazev'
+      ? String(env.KNYAZEV_MIX_MODELS || 'minimax-2.7,deepseek-v4-flash,kimi-2.6').split(',').map(item => item.trim()).filter(Boolean)
+      : [provider.model];
     const model = modelPool[stableModelIndex(mixSeed, probe.id, modelPool.length)];
     await claimSharedProviderSlot(env, provider, meta(`probe:${probe.id}`).traceId);
-    const result = await callTextModel(provider, probePrompt(source, probe), model, { ...meta(`probe:${probe.id}`), maxTokens: 850, timeoutMs: 45000 });
-    return { ...result, model };
+    let result;
+    let usedModel = model;
+    try {
+      result = await callTextModel(provider, probePrompt(source, probe), model, { ...meta(`probe:${probe.id}`), maxTokens: 850, timeoutMs: 45000 });
+    } catch (error) {
+      if (provider.provider !== 'knyazev' || model !== 'kimi-2.6') throw error;
+      usedModel = 'minimax-2.7';
+      await claimSharedProviderSlot(env, provider, meta(`probe:${probe.id}:kimi-fallback`).traceId);
+      result = await callTextModel(provider, probePrompt(source, probe), usedModel, { ...meta(`probe:${probe.id}:kimi-fallback`), maxTokens: 850, timeoutMs: 45000 });
+      result.modelFallback = { requested: model, used: usedModel, reason: error instanceof Error ? error.message : String(error) };
+    }
+    return { ...result, model: usedModel, provider: provider.label || provider.provider };
   }));
   return settled.map((entry, index) => entry.status === 'fulfilled'
     ? { ...entry.value, probeId: probes[index].id, label: probes[index].label, status: 'done' }
-    : { probeId: probes[index].id, label: probes[index].label, model: modelPool[stableModelIndex(mixSeed, probes[index].id, modelPool.length)], status: 'warning', error: entry.reason instanceof Error ? entry.reason.message : String(entry.reason), confidence: 0 });
+    : { probeId: probes[index].id, label: probes[index].label, status: 'warning', error: entry.reason instanceof Error ? entry.reason.message : String(entry.reason), confidence: 0 });
 }
 
-async function runPipeline(env, provider, text, audioContext, lockedDichotomies = {}, lockedPsychosophy = {}, preferredTim = '', diagnostics = {}) {
-  const isKnyazev = provider.provider === 'knyazev';
-  const modelPool = isKnyazev
-    ? String(env.KNYAZEV_MIX_MODELS || 'minimax-2.7,deepseek-v4-flash').split(',').map(item => item.trim()).filter(Boolean)
-    : [provider.model];
-  const finalModel = isKnyazev ? (env.FINAL_MODEL || 'minimax-2.7') : provider.model;
+async function runPipeline(env, providers, text, audioContext, lockedDichotomies = {}, lockedPsychosophy = {}, preferredTim = '', diagnostics = {}) {
+  const tickets = providerTickets(providers);
+  const finalProvider = providers.find(item => item.policy === 'always') || providers.find(item => item.policy === 'system') || tickets[stableModelIndex(diagnostics.mixSeed || diagnostics.traceId, 'final', tickets.length)];
+  const finalModel = finalProvider.provider === 'knyazev' ? (env.FINAL_MODEL || 'minimax-2.7') : finalProvider.model;
 
   const hardConstraints = Object.keys(lockedDichotomies || {}).length || Object.keys(lockedPsychosophy || {}).length
     ? `\n\nЖЁСТКИЕ ОГРАНИЧЕНИЯ ПОЛЬЗОВАТЕЛЯ (не меняй и не оспаривай их при пересчёте):\nДихотомии: ${compact(lockedDichotomies)}\nПсихософия: ${compact(lockedPsychosophy)}`
@@ -316,7 +351,7 @@ async function runPipeline(env, provider, text, audioContext, lockedDichotomies 
   const probeResults = [];
   for (let index = 0; index < waves.length; index += 1) {
     const waveStartedAt = Date.now();
-    probeResults.push(...await runProbeWave(env, provider, waves[index], source, modelPool, diagnostics.mixSeed || diagnostics.traceId, meta));
+    probeResults.push(...await runProbeWave(env, providers, waves[index], source, diagnostics.mixSeed || diagnostics.traceId, meta));
     if (index < waves.length - 1) {
       const remainingWindow = Math.max(0, 61000 - (Date.now() - waveStartedAt));
       if (remainingWindow) await delay(remainingWindow);
@@ -324,17 +359,17 @@ async function runPipeline(env, provider, text, audioContext, lockedDichotomies 
   }
 
   const successful = probeResults.filter(item => item.status === 'done');
-  await claimSharedProviderSlot(env, provider, diagnostics.traceId);
-  const finalResult = await callTextModel(provider, `${source}\n\nРЕЗУЛЬТАТЫ 24 НЕЗАВИСИМЫХ ПРОВЕРОК:\n${compact(successful)}\n\nЗАДАЧА СИНТЕЗА. Сопоставь 15 признаков Рейнина, дух квадры и 8 аспектов с гипотезами позиций Модели А. Базис Юнга и Статика/Динамика имеют больший вес, Рациональность/Иррациональность — половинный; остальные признаки — обычный. Не считай отсутствие признака доказательством противоположного. Сначала сравни минимум три конкурирующих ТИМа, затем выступи критиком лидера: ищи натяжки, ролевое поведение, культурную среду, желаемый образ и противоречащие цитаты. Если надёжных данных нет, верни confidenceLevel=insufficient. Основной тип и альтернативы только из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. JSON строго: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""],"quadra":{"name":"","confidence":0,"evidence":""},"probeAgreement":{"agree":0,"disagree":0,"insufficient":0}}. Не раскрывай скрытую цепочку рассуждений; покажи только проверяемые основания и сомнения.`, finalModel, { ...meta('final-synthesis'), maxTokens: 5200, timeoutMs: 100000 });
+  await claimSharedProviderSlot(env, finalProvider, diagnostics.traceId);
+  const finalResult = await callTextModel(finalProvider, `${source}\n\nРЕЗУЛЬТАТЫ 24 НЕЗАВИСИМЫХ ПРОВЕРОК:\n${compact(successful)}\n\nЗАДАЧА СИНТЕЗА. Сопоставь 15 признаков Рейнина, дух квадры и 8 аспектов с гипотезами позиций Модели А. Базис Юнга и Статика/Динамика имеют больший вес, Рациональность/Иррациональность — половинный; остальные признаки — обычный. Не считай отсутствие признака доказательством противоположного. Сначала сравни минимум три конкурирующих ТИМа, затем выступи критиком лидера: ищи натяжки, ролевое поведение, культурную среду, желаемый образ и противоречащие цитаты. Если надёжных данных нет, верни confidenceLevel=insufficient. Основной тип и альтернативы только из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. JSON строго: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""],"quadra":{"name":"","confidence":0,"evidence":""},"probeAgreement":{"agree":0,"disagree":0,"insufficient":0}}. Не раскрывай скрытую цепочку рассуждений; покажи только проверяемые основания и сомнения.`, finalModel, { ...meta('final-synthesis'), maxTokens: 5200, timeoutMs: 100000 });
 
   return {
     result: finalResult,
     probeResults,
     stages: [
-      ...probeResults.map(item => ({ id: item.probeId, label: item.label, status: item.status, model: item.model })),
-      { id: 'final', label: 'Синтез и критик', status: 'done', model: finalModel }
+      ...probeResults.map(item => ({ id: item.probeId, label: item.label, status: item.status, model: item.model, provider: item.provider, rawResponse: item })),
+      { id: 'final', label: 'Синтез и критик', status: 'done', model: finalModel, provider: finalProvider.label || finalProvider.provider, rawResponse: finalResult }
     ],
-    providerUsed: `${provider.provider}:${modelPool.join(' + ')} → ${finalModel}`,
+    providerUsed: `${providers.map(item => item.label || item.provider).join(' + ')} → ${finalProvider.label || finalProvider.provider}:${finalModel}`,
     requestPlan: { probes: ALL_PROBES.length, requestsPerMinute, waves: waves.length, fallbackAfterSeconds: 210 }
   };
 }
@@ -343,7 +378,9 @@ function applyExplicitRandomFallback(pipeline, input, audioContext, traceId) {
   const result = pipeline?.result || {};
   const abbreviation = String(result?.tim?.abbreviation || result?.tim || '').trim().toUpperCase();
   const confidence = Number(result?.confidence || 0);
-  const modelUndecided = !TYPE_NAMES[abbreviation] || (result?.confidenceLevel === 'insufficient' && confidence <= 10);
+  const strongestAlternative = Math.max(0, ...(Array.isArray(result?.alternatives) ? result.alternatives.map(item => Number(item?.probability || 0)) : []));
+  const criticalLead = confidence >= 60 && confidence - strongestAlternative >= 12 && result?.confidenceLevel !== 'insufficient';
+  const modelUndecided = !TYPE_NAMES[abbreviation] || !criticalLead;
   const hasPreference = Boolean(TYPE_NAMES[String(input.preferredTim || '').trim().toUpperCase()]);
   const hasLocks = Object.keys(input.lockedDichotomies || {}).length > 0 || Object.keys(input.lockedPsychosophy || {}).length > 0;
   const usefulText = (String(input.text || '').match(/[а-яёa-z0-9-]+/gi) || []).length >= 8;
@@ -449,10 +486,10 @@ async function handleAnalyze(request, env, visitor, ctx) {
   const input = await request.json();
   const traceId = crypto.randomUUID();
   if ((!input.text || String(input.text).trim().length < 30) && !(input.audio || []).length) return json({ error: 'NOT_ENOUGH_DATA', message: 'Добавьте текст или аудио.' }, 400);
-  const provider = resolveProvider(env, input.byok || {});
+  const providers = resolveProviders(env, input.byok || {});
   console.log({
     event: 'typist.analysis.start', traceId, personId: cleanId(input.sessionId) || 'unknown',
-    provider: provider.provider, model: provider.model, textChars: String(input.text || '').length,
+    providers: providers.map(provider => ({ provider: provider.provider, label: provider.label, model: provider.model, policy: provider.policy })), textChars: String(input.text || '').length,
     audioFiles: (input.audio || []).map(item => ({ name: String(item.name || ''), mimeType: String(item.mimeType || ''), base64Chars: String(item.base64 || '').length })),
     lockedDichotomies: input.lockedDichotomies || {}, lockedPsychosophy: input.lockedPsychosophy || {},
     preferredTim: input.preferredTim || '', fullText: env.LOG_PROMPTS === 'true' && input.debugConsent ? String(input.text || '') : undefined
@@ -461,10 +498,10 @@ async function handleAnalyze(request, env, visitor, ctx) {
   if (input.byok?.mode !== 'byok') credits = await consumeCredit(env, visitor.id, 'analysis');
   const debugCopy = await saveDebug(env, input, visitor.id, ctx);
   let audioContext = '';
-  try { audioContext = await transcribeAudio(env, input.audio || [], input.voiceGuide || 'Определи говорящих только если это надёжно возможно; иначе верни общую расшифровку без приписывания реплик конкретному человеку.'); }
+  try { audioContext = input.byok?.omniEnabled === false ? '[OMNI-анализ отключён пользователем.]' : await transcribeAudio(env, input.audio || [], input.voiceGuide || 'Определи говорящих только если это надёжно возможно; иначе верни общую расшифровку без приписывания реплик конкретному человеку.'); }
   catch { audioContext = '[Аудио не удалось расшифровать. Не делай выводов о голосе.]'; }
   let pipeline = await runPipeline(
-    env, provider, String(input.text || ''), audioContext,
+    env, providers, String(input.text || ''), audioContext,
     input.lockedDichotomies || {}, input.lockedPsychosophy || {}, input.preferredTim || '',
     { traceId, mixSeed: cleanId(input.sessionId) || traceId, fullLog: Boolean(input.debugConsent) }
   );
@@ -477,7 +514,7 @@ async function handleAnalyze(request, env, visitor, ctx) {
 async function handleAsk(request, env, visitor) {
   const input = await request.json();
   if (!input.question || !input.result) return json({ error: 'BAD_QUESTION' }, 400);
-  const provider = resolveProvider(env, input.byok || {});
+  const provider = resolveProviders(env, input.byok || {})[0];
   let credits = await ensureUser(env, visitor.id);
   if (input.byok?.mode !== 'byok') credits = await consumeCredit(env, visitor.id, 'question');
   const answer = await callTextModel(provider, `РЕЗУЛЬТАТ ТИПИРОВАНИЯ:\n${compact(input.result)}\n\nВОПРОС:\n${String(input.question).slice(0, 3000)}\n\nОтветь просто и конкретно. Не повышай уверенность исходного результата. Верни JSON {"answer":"","suggestedQuestions":["","",""]}.`, env.QUESTION_MODEL || provider.model, { traceId: crypto.randomUUID(), stage: 'question', fullLog: false });
