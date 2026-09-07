@@ -117,7 +117,8 @@ function resolveProvider(env, byok = {}) {
       key: byok.key,
       baseUrl: baseUrl.replace(/\/$/, ''),
       model: String(byok.model || ''),
-      effort: ['low', 'medium', 'high', 'xhigh', 'max'].includes(byok.effort) ? byok.effort : 'high'
+      effort: ['low', 'medium', 'high', 'xhigh', 'max'].includes(byok.effort) ? byok.effort : 'high',
+      logPrompts: env.LOG_PROMPTS === 'true'
     };
   }
   const includedKey = env.KNYAZEV_API_KEY || TEMP_DEMO_KNYAZEV_KEY;
@@ -126,38 +127,60 @@ function resolveProvider(env, byok = {}) {
     provider: 'knyazev',
     key: includedKey,
     baseUrl: (env.KNYAZEV_BASE_URL || 'https://knyazevai.work/v1').replace(/\/$/, ''),
-    model: env.KNYAZEV_MODEL || 'deepseek-v4-flash'
+    model: env.KNYAZEV_MODEL || 'deepseek-v4-flash',
+    logPrompts: env.LOG_PROMPTS === 'true'
   };
 }
 
-async function callTextModel(config, prompt, modelOverride) {
-  if (config.provider === 'anthropic') {
-    const response = await fetch(`${config.baseUrl || 'https://api.anthropic.com/v1'}/messages`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': config.key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: modelOverride || config.model, max_tokens: 12000, temperature: 0.1, output_config: { effort: config.effort || 'high' }, messages: [{ role: 'user', content: prompt }] })
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload?.error?.message || `UPSTREAM_${response.status}`);
-    return parseJsonResponse(payload);
-  }
-
-  const response = await fetch(`${config.baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
-    body: JSON.stringify({
-      model: modelOverride || config.model,
-      temperature: 0.1,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: 'Return valid JSON only. Be explicit about uncertainty. Never infer facts that are not supported by the supplied material.' },
-        { role: 'user', content: prompt }
-      ]
-    })
+async function callTextModel(config, prompt, modelOverride, meta = {}) {
+  const model = modelOverride || config.model;
+  const startedAt = Date.now();
+  const logFull = Boolean(config.logPrompts && meta.fullLog);
+  console.log({
+    event: 'typist.model.request', traceId: meta.traceId || '', stage: meta.stage || 'unknown',
+    provider: config.provider, model, promptChars: prompt.length,
+    prompt: logFull ? prompt : undefined,
+    promptPreview: logFull ? undefined : '[скрыт: пользователь не включил отладочное сохранение]'
   });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.error?.message || payload?.message || `UPSTREAM_${response.status}`);
-  return parseJsonResponse(payload);
+  try {
+    let response;
+    if (config.provider === 'anthropic') {
+      response = await fetch(`${config.baseUrl || 'https://api.anthropic.com/v1'}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': config.key, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model, max_tokens: 12000, temperature: 0.1, output_config: { effort: config.effort || 'high' }, messages: [{ role: 'user', content: prompt }] })
+      });
+    } else {
+      response = await fetch(`${config.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
+        body: JSON.stringify({
+          model, temperature: 0.1, response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: 'Return valid JSON only. Be explicit about uncertainty. Never infer facts that are not supported by the supplied material.' },
+            { role: 'user', content: prompt }
+          ]
+        })
+      });
+    }
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload?.error?.message || payload?.message || `UPSTREAM_${response.status}`);
+    const parsed = parseJsonResponse(payload);
+    console.log({
+      event: 'typist.model.response', traceId: meta.traceId || '', stage: meta.stage || 'unknown',
+      provider: config.provider, model, durationMs: Date.now() - startedAt,
+      usage: payload?.usage || null, response: logFull ? parsed : undefined,
+      responseKeys: parsed && typeof parsed === 'object' ? Object.keys(parsed) : []
+    });
+    return parsed;
+  } catch (error) {
+    console.error({
+      event: 'typist.model.error', traceId: meta.traceId || '', stage: meta.stage || 'unknown',
+      provider: config.provider, model, durationMs: Date.now() - startedAt,
+      error: error instanceof Error ? error.message : String(error)
+    });
+    throw error;
+  }
 }
 
 async function transcribeAudio(env, audio, voiceGuide) {
@@ -165,7 +188,7 @@ async function transcribeAudio(env, audio, voiceGuide) {
   if (!env.OMNI_API_KEY || !env.OMNI_BASE_URL || !env.OMNI_MODEL) {
     return '[Аудио приложено, но отдельная OMNI-модель пока не настроена. Не делай выводов об интонации и голосе.]';
   }
-  const parts = [{ type: 'text', text: `Транскрибируй только нужного человека. Инструкция: ${voiceGuide}. Верни JSON {"transcript":"...","voiceObservations":["..."]}. Не определяй социотип.` }];
+  const parts = [{ type: 'text', text: `Сделай точную расшифровку аудио. ${voiceGuide ? `Дополнительный ориентир пользователя: ${voiceGuide}.` : 'Если говорящих несколько и их нельзя надёжно различить, не приписывай реплики конкретному человеку.'} Верни JSON {"transcript":"...","voiceObservations":["..."]}. Наблюдения по темпу и паузам помечай как слабые признаки. Не определяй социотип.` }];
   for (const item of audio) {
     const format = item.mimeType.includes('wav') ? 'wav' : item.mimeType.includes('webm') ? 'webm' : 'mp3';
     parts.push({ type: 'input_audio', input_audio: { data: item.base64, format } });
@@ -183,16 +206,21 @@ async function transcribeAudio(env, audio, voiceGuide) {
 
 const compact = value => JSON.stringify(value).slice(0, 50000);
 
-async function runPipeline(env, provider, text, audioContext) {
+async function runPipeline(env, provider, text, audioContext, lockedDichotomies = {}, lockedPsychosophy = {}, preferredTim = '', diagnostics = {}) {
   const observationsModel = env.OBSERVATION_MODEL || provider.model;
   const hypothesesModel = env.HYPOTHESIS_MODEL || provider.model;
   const criticModel = env.CRITIC_MODEL || provider.model;
   const finalModel = env.FINAL_MODEL || provider.model;
 
-  const source = `ТЕКСТ УЧАСТНИКА:\n${text || '[текста нет]'}\n\nАУДИО/ТРАНСКРИПТ:\n${audioContext || '[аудио нет]'}`;
+  const hardConstraints = Object.keys(lockedDichotomies || {}).length || Object.keys(lockedPsychosophy || {}).length
+    ? `\n\nЖЁСТКИЕ ОГРАНИЧЕНИЯ ПОЛЬЗОВАТЕЛЯ (не меняй и не оспаривай их при пересчёте):\nДихотомии: ${compact(lockedDichotomies)}\nПсихософия: ${compact(lockedPsychosophy)}`
+    : '';
+  const preference = TYPE_NAMES[preferredTim] ? `\n\nПРЕДПОЧТЕНИЕ ПОЛЬЗОВАТЕЛЯ: ${preferredTim} (${TYPE_NAMES[preferredTim]}). Это не доказательство и не жёсткий замок: отдельно проверь эту версию и честно укажи, подтверждается ли она.` : '';
+  const source = `ТЕКСТ УЧАСТНИКА:\n${text || '[текста нет]'}\n\nАУДИО/ТРАНСКРИПТ:\n${audioContext || '[аудио нет]'}${hardConstraints}${preference}`;
+  const meta = stage => ({ traceId: diagnostics.traceId, fullLog: diagnostics.fullLog, stage });
   const strongAnthropic = provider.provider === 'anthropic' && /(?:fable|opus|sonnet-5)/i.test(provider.model || '');
   if (strongAnthropic) {
-    const result = await callTextModel(provider, `${source}\n\nЦЕЛЬ: построить проверяемую, честную гипотезу о соционическом типе человека. Внутренне выполни четыре проверки: (1) отдели наблюдаемые факты и короткие цитаты от интерпретаций; (2) сравни основной ТИМ минимум с двумя альтернативами; (3) постарайся опровергнуть лидирующую версию и найди натяжки; (4) собери итог и явно назови недостающие данные. Не ставь высокую уверенность без независимых подтверждений. Не типируй по одному слову, профессии, настроению или социальной роли. Пиши просто и прямо. Не выводи внутренние рассуждения. Основной тип и альтернативы только из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. Верни только JSON: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""]}.`, finalModel);
+    const result = await callTextModel(provider, `${source}\n\nЦЕЛЬ: построить проверяемую, честную гипотезу о соционическом типе человека. Внутренне выполни четыре проверки: (1) отдели наблюдаемые факты и короткие цитаты от интерпретаций; (2) сравни основной ТИМ минимум с двумя альтернативами; (3) постарайся опровергнуть лидирующую версию и найди натяжки; (4) собери итог и явно назови недостающие данные. Не ставь высокую уверенность без независимых подтверждений. Не типируй по одному слову, профессии, настроению или социальной роли. Пиши просто и прямо. Не выводи внутренние рассуждения. Основной тип и альтернативы только из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. Верни только JSON: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""]}.`, finalModel, meta('deep-single'));
     return {
       result,
       stages: [
@@ -205,11 +233,11 @@ async function runPipeline(env, provider, text, audioContext) {
     };
   }
   const [observations, hypotheses, criticism] = await Promise.all([
-    callTextModel(provider, `${source}\n\nЗАДАЧА 1. Без типирования извлеки наблюдения: проверяемые факты, короткие цитаты, повторяющиеся способы выбора, реакции на неопределённость, стиль аргументации. Отделяй наблюдение от интерпретации. JSON: {"facts":[{"quote":"","observation":"","relevance":""}],"missingData":[""]}.`, observationsModel),
-    callTextModel(provider, `${source}\n\nЗАДАЧА 2. Независимо построй конкурирующие гипотезы по соционике: основной ТИМ и минимум две альтернативы из списка ${Object.keys(TYPE_NAMES).join(', ')}. Не выдавай уверенность выше данных. JSON: {"primary":{"abbreviation":"","name":"","confidence":0,"reason":""},"alternatives":[{"abbreviation":"","name":"","confidence":0,"reason":""}],"dichotomies":[{"name":"Экстраверсия / Интроверсия","result":"","confidence":0,"evidence":""}],"uncertainties":[""]}. Уверенность 0–100.`, hypothesesModel),
-    callTextModel(provider, `${source}\n\nЗАДАЧА 3. Ты независимый критик до знакомства с чужой гипотезой. Найди признаки, которые чаще всего типируют ошибочно: социальные роли, профессию, настроение, выученный жаргон, желаемый образ. Назови взаимоисключающие объяснения и вопросы, способные их развести. JSON: {"problems":[""],"counterHypotheses":[""],"whatToAskNext":[""],"confidenceCeiling":0}.`, criticModel)
+    callTextModel(provider, `${source}\n\nЗАДАЧА 1. Без типирования извлеки наблюдения: проверяемые факты, короткие цитаты, повторяющиеся способы выбора, реакции на неопределённость, стиль аргументации. Отделяй наблюдение от интерпретации. JSON: {"facts":[{"quote":"","observation":"","relevance":""}],"missingData":[""]}.`, observationsModel, meta('observations')),
+    callTextModel(provider, `${source}\n\nЗАДАЧА 2. Независимо построй конкурирующие гипотезы по соционике: основной ТИМ и минимум две альтернативы из списка ${Object.keys(TYPE_NAMES).join(', ')}. Не выдавай уверенность выше данных. JSON: {"primary":{"abbreviation":"","name":"","confidence":0,"reason":""},"alternatives":[{"abbreviation":"","name":"","confidence":0,"reason":""}],"dichotomies":[{"name":"Экстраверсия / Интроверсия","result":"","confidence":0,"evidence":""}],"uncertainties":[""]}. Уверенность 0–100.`, hypothesesModel, meta('hypotheses')),
+    callTextModel(provider, `${source}\n\nЗАДАЧА 3. Ты независимый критик до знакомства с чужой гипотезой. Найди признаки, которые чаще всего типируют ошибочно: социальные роли, профессию, настроение, выученный жаргон, желаемый образ. Назови взаимоисключающие объяснения и вопросы, способные их развести. JSON: {"problems":[""],"counterHypotheses":[""],"whatToAskNext":[""],"confidenceCeiling":0}.`, criticModel, meta('critic'))
   ]);
-  const finalResult = await callTextModel(provider, `${source}\n\nНАБЛЮДЕНИЯ:\n${compact(observations)}\n\nГИПОТЕЗЫ:\n${compact(hypotheses)}\n\nКРИТИКА:\n${compact(criticism)}\n\nЗАДАЧА 4. Собери честный итог. Если данных мало, так и напиши. Основной тип и альтернативы должны быть из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. JSON строго: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""]}. Явно укажи сомнения.`, finalModel);
+  const finalResult = await callTextModel(provider, `${source}\n\nНАБЛЮДЕНИЯ:\n${compact(observations)}\n\nГИПОТЕЗЫ:\n${compact(hypotheses)}\n\nКРИТИКА:\n${compact(criticism)}\n\nЗАДАЧА 4. Собери честный итог. Если данных мало, так и напиши. Основной тип и альтернативы должны быть из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. JSON строго: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""]}. Явно укажи сомнения.`, finalModel, meta('final'));
 
   return {
     result: finalResult,
@@ -221,6 +249,44 @@ async function runPipeline(env, provider, text, audioContext) {
     ],
     providerUsed: provider.provider
   };
+}
+
+function applyExplicitRandomFallback(pipeline, input, audioContext, traceId) {
+  const result = pipeline?.result || {};
+  const abbreviation = String(result?.tim?.abbreviation || result?.tim || '').trim().toUpperCase();
+  const confidence = Number(result?.confidence || 0);
+  const modelUndecided = !TYPE_NAMES[abbreviation] || (result?.confidenceLevel === 'insufficient' && confidence <= 10);
+  const hasPreference = Boolean(TYPE_NAMES[String(input.preferredTim || '').trim().toUpperCase()]);
+  const hasLocks = Object.keys(input.lockedDichotomies || {}).length > 0 || Object.keys(input.lockedPsychosophy || {}).length > 0;
+  const usefulText = (String(input.text || '').match(/[а-яёa-z0-9-]+/gi) || []).length >= 8;
+  const usefulAudio = Boolean(audioContext && !/^\[Аудио/.test(audioContext));
+  const noUsableMaterial = !usefulText && !usefulAudio;
+  if ((!modelUndecided && !noUsableMaterial) || hasPreference || hasLocks) return pipeline;
+
+  const abbreviations = Object.keys(TYPE_NAMES);
+  const randomIndex = crypto.getRandomValues(new Uint32Array(1))[0] % abbreviations.length;
+  const randomAbbreviation = abbreviations[randomIndex];
+  const alternatives = [1, 2].map(offset => {
+    const alt = abbreviations[(randomIndex + offset * 5) % abbreviations.length];
+    return { abbreviation: alt, name: TYPE_NAMES[alt], probability: 0, reason: 'Случайная запасная версия; не результат анализа.' };
+  });
+  pipeline.result = {
+    ...result,
+    tim: { abbreviation: randomAbbreviation, name: TYPE_NAMES[randomAbbreviation] },
+    summary: `Модель не смогла обоснованно определить ТИМ. Чтобы всё равно открыть интерфейс результата, генератор случайности выбрал ${TYPE_NAMES[randomAbbreviation]} (${randomAbbreviation}). Это не типирование и не рекомендация.`,
+    confidence: 0,
+    confidenceLevel: 'insufficient',
+    alternatives,
+    dichotomies: [],
+    wordEvidence: [],
+    doubts: [
+      'ТИМ выбран криптографическим генератором случайных чисел, потому что доказательств и пользовательских предпочтений не было.',
+      ...(Array.isArray(result?.doubts) ? result.doubts : [])
+    ],
+    randomFallback: true
+  };
+  console.warn({ event: 'typist.random_fallback', traceId, reason: noUsableMaterial ? 'no_usable_material' : 'model_undecided', selectedTim: randomAbbreviation });
+  return pipeline;
 }
 
 async function saveDebug(env, input, visitorId, ctx) {
@@ -293,17 +359,31 @@ async function sendDebugNotice(env, metadata, prefix) {
 
 async function handleAnalyze(request, env, visitor, ctx) {
   const input = await request.json();
+  const traceId = crypto.randomUUID();
   if ((!input.text || String(input.text).trim().length < 30) && !(input.audio || []).length) return json({ error: 'NOT_ENOUGH_DATA', message: 'Добавьте текст или аудио.' }, 400);
   const provider = resolveProvider(env, input.byok || {});
+  console.log({
+    event: 'typist.analysis.start', traceId, personId: cleanId(input.sessionId) || 'unknown',
+    provider: provider.provider, model: provider.model, textChars: String(input.text || '').length,
+    audioFiles: (input.audio || []).map(item => ({ name: String(item.name || ''), mimeType: String(item.mimeType || ''), base64Chars: String(item.base64 || '').length })),
+    lockedDichotomies: input.lockedDichotomies || {}, lockedPsychosophy: input.lockedPsychosophy || {},
+    preferredTim: input.preferredTim || '', fullText: env.LOG_PROMPTS === 'true' && input.debugConsent ? String(input.text || '') : undefined
+  });
   let credits = await ensureUser(env, visitor.id);
   if (input.byok?.mode !== 'byok') credits = await consumeCredit(env, visitor.id, 'analysis');
   const debugCopy = await saveDebug(env, input, visitor.id, ctx);
   let audioContext = '';
-  try { audioContext = await transcribeAudio(env, input.audio || [], input.voiceGuide || 'типировать основной голос'); }
+  try { audioContext = await transcribeAudio(env, input.audio || [], input.voiceGuide || 'Определи говорящих только если это надёжно возможно; иначе верни общую расшифровку без приписывания реплик конкретному человеку.'); }
   catch { audioContext = '[Аудио не удалось расшифровать. Не делай выводов о голосе.]'; }
-  const pipeline = await runPipeline(env, provider, String(input.text || ''), audioContext);
+  let pipeline = await runPipeline(
+    env, provider, String(input.text || ''), audioContext,
+    input.lockedDichotomies || {}, input.lockedPsychosophy || {}, input.preferredTim || '',
+    { traceId, fullLog: Boolean(input.debugConsent) }
+  );
+  pipeline = applyExplicitRandomFallback(pipeline, input, audioContext, traceId);
   await finishDebugCopy(env, debugCopy, pipeline, audioContext);
-  return json({ ...pipeline, attemptsLeft: Number(credits?.analysis_credits ?? 0), questionsLeft: Number(credits?.question_credits ?? 0), debugId: debugCopy?.submissionId || null });
+  console.log({ event: 'typist.analysis.complete', traceId, selectedTim: pipeline?.result?.tim?.abbreviation || '', confidence: pipeline?.result?.confidence || 0, randomFallback: Boolean(pipeline?.result?.randomFallback) });
+  return json({ ...pipeline, traceId, attemptsLeft: Number(credits?.analysis_credits ?? 0), questionsLeft: Number(credits?.question_credits ?? 0), debugId: debugCopy?.submissionId || null });
 }
 
 async function handleAsk(request, env, visitor) {
@@ -312,7 +392,7 @@ async function handleAsk(request, env, visitor) {
   const provider = resolveProvider(env, input.byok || {});
   let credits = await ensureUser(env, visitor.id);
   if (input.byok?.mode !== 'byok') credits = await consumeCredit(env, visitor.id, 'question');
-  const answer = await callTextModel(provider, `РЕЗУЛЬТАТ ТИПИРОВАНИЯ:\n${compact(input.result)}\n\nВОПРОС:\n${String(input.question).slice(0, 3000)}\n\nОтветь просто и конкретно. Не повышай уверенность исходного результата. Верни JSON {"answer":"","suggestedQuestions":["","",""]}.`, env.QUESTION_MODEL || provider.model);
+  const answer = await callTextModel(provider, `РЕЗУЛЬТАТ ТИПИРОВАНИЯ:\n${compact(input.result)}\n\nВОПРОС:\n${String(input.question).slice(0, 3000)}\n\nОтветь просто и конкретно. Не повышай уверенность исходного результата. Верни JSON {"answer":"","suggestedQuestions":["","",""]}.`, env.QUESTION_MODEL || provider.model, { traceId: crypto.randomUUID(), stage: 'question', fullLog: false });
   return json({ answer: answer.answer || '', suggestedQuestions: answer.suggestedQuestions || [], questionsLeft: Number(credits?.question_credits ?? 0) });
 }
 
@@ -322,7 +402,8 @@ async function handleValidate(request, env) {
   const result = await callTextModel(
     provider,
     'Проверка соединения. Верни только JSON {"ok":true,"message":"Ключ принят"}.',
-    provider.model
+    provider.model,
+    { traceId: crypto.randomUUID(), stage: 'validate-key', fullLog: false }
   );
   if (!result?.ok) throw new Error('KEY_VALIDATION_FAILED');
   return json({ ok: true, provider: provider.provider, model: provider.model });
