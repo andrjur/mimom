@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "indikov-typist-api",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "routes": [{ "pattern": "indikov.ru/api/typist/*", "zone_name": "indikov.ru" }],
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  "vars": {
+    "KNYAZEV_BASE_URL": "https://knyazevai.work/v1",
+    "KNYAZEV_MODEL": "minimax-2.7",
+    "KNYAZEV_MIX_MODELS": "minimax-2.7,deepseek-v4-flash",
+    "FINAL_MODEL": "minimax-2.7",
+    "PROBE_REQUESTS_PER_MINUTE": "10",
+    "QUESTION_MODEL": "minimax-2.7",
+    "STORE_DEBUG_PAYLOADS": "false",
+    "ALLOW_CUSTOM_BYOK": "true",
+    "LOG_PROMPTS": "true",
+    "DEBUG_RETENTION_DAYS": "7"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "indikov-typist",
+    "database_id": "34bc8d24-a344-453c-b3a9-fce95c220ad4"
+  }]
+}

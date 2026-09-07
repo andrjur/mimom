@@ -1,9 +1,5 @@
 import { EmailMessage } from 'cloudflare:email';
 
-// ВРЕМЕННЫЙ ПУБЛИЧНЫЙ ДЕМО-КЛЮЧ. После записи ролика отозвать и заменить
-// переменной KNYAZEV_API_KEY в Cloudflare Worker Secrets.
-const TEMP_DEMO_KNYAZEV_KEY = 'kn_live_23364b4daa5c29aa242666027f1b60d6';
-
 const ALLOWED_ORIGINS = new Set([
   'https://indikov.ru',
   'https://www.indikov.ru',
@@ -114,6 +110,7 @@ function resolveProvider(env, byok = {}) {
     }
     return {
       provider: byok.provider,
+      shared: false,
       key: byok.key,
       baseUrl: baseUrl.replace(/\/$/, ''),
       model: String(byok.model || ''),
@@ -121,13 +118,14 @@ function resolveProvider(env, byok = {}) {
       logPrompts: env.LOG_PROMPTS === 'true'
     };
   }
-  const includedKey = env.KNYAZEV_API_KEY || TEMP_DEMO_KNYAZEV_KEY;
+  const includedKey = env.KNYAZEV_API_KEY;
   if (!includedKey) throw new Error('INCLUDED_PROVIDER_NOT_CONFIGURED');
   return {
     provider: 'knyazev',
+    shared: true,
     key: includedKey,
     baseUrl: (env.KNYAZEV_BASE_URL || 'https://knyazevai.work/v1').replace(/\/$/, ''),
-    model: env.KNYAZEV_MODEL || 'deepseek-v4-flash',
+    model: env.KNYAZEV_MODEL || 'minimax-2.7',
     logPrompts: env.LOG_PROMPTS === 'true'
   };
 }
@@ -135,6 +133,8 @@ function resolveProvider(env, byok = {}) {
 async function callTextModel(config, prompt, modelOverride, meta = {}) {
   const model = modelOverride || config.model;
   const startedAt = Date.now();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort('MODEL_TIMEOUT'), Number(meta.timeoutMs || 90000));
   const logFull = Boolean(config.logPrompts && meta.fullLog);
   console.log({
     event: 'typist.model.request', traceId: meta.traceId || '', stage: meta.stage || 'unknown',
@@ -147,15 +147,17 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
     if (config.provider === 'anthropic') {
       response = await fetch(`${config.baseUrl || 'https://api.anthropic.com/v1'}/messages`, {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json', 'x-api-key': config.key, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model, max_tokens: 12000, temperature: 0.1, output_config: { effort: config.effort || 'high' }, messages: [{ role: 'user', content: prompt }] })
+        body: JSON.stringify({ model, max_tokens: meta.maxTokens || 2400, temperature: 0.1, output_config: { effort: config.effort || 'high' }, messages: [{ role: 'user', content: prompt }] })
       });
     } else {
       response = await fetch(`${config.baseUrl}/chat/completions`, {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
         body: JSON.stringify({
-          model, temperature: 0.1, response_format: { type: 'json_object' },
+          model, temperature: 0.1, max_tokens: meta.maxTokens || 2400, response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: 'Return valid JSON only. Be explicit about uncertainty. Never infer facts that are not supported by the supplied material.' },
             { role: 'user', content: prompt }
@@ -180,6 +182,8 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
       error: error instanceof Error ? error.message : String(error)
     });
     throw error;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -206,11 +210,99 @@ async function transcribeAudio(env, audio, voiceGuide) {
 
 const compact = value => JSON.stringify(value).slice(0, 50000);
 
+const REININ_PROBES = [
+  ['ei', 'Экстраверсия / Интроверсия', 'Экстраверсия', 'Интроверсия', 1, 'Экстраверт расширяет поле объектов, людей и внешних связей; интроверт углубляет отношение субъекта к одному объекту и его внутренним нюансам.', 'Не считай общительность, сценичность, застенчивость или количество друзей прямым доказательством.'],
+  ['le', 'Логика / Этика', 'Логика', 'Этика', 2, 'Логический полюс формализует через факты, правила, причинность и эффективность; этический — через мотивы, отношения, состояние людей и влияние решения на них.', 'Профессия, образование, управленческий жаргон и выученные нормы могут маскировать естественный язык выбора.'],
+  ['si', 'Сенсорика / Интуиция', 'Сенсорика', 'Интуиция', 2, 'Сенсорный полюс возвращает рассказ к телу, территории, ресурсам и наблюдаемому действию; интуитивный — к возможностям, времени, смыслам и альтернативным сценариям.', 'Спорт, массаж, фантазии или любовь к технологиям по отдельности не определяют полюс.'],
+  ['ri', 'Рациональность / Иррациональность', 'Рациональность', 'Иррациональность', 0.5, 'Рациональный полюс старается заранее зафиксировать решение, порядок и обязательство; иррациональный держит форму открытой и перестраивается вслед за изменившейся ситуацией.', 'Дисциплина, дедлайн, тревога и хаос быта могут быть внешней адаптацией. Вес этого признака половинный.'],
+  ['sd', 'Статика / Динамика', 'Статика', 'Динамика', 2, 'Статика членит опыт на состояния, объекты и качества как отдельные кадры; динамика описывает непрерывный поток изменений, действий и переходов.', 'Считай грамматику и способ сборки рассказа на длинных фрагментах, а не наличие отдельных глаголов.'],
+  ['yo', 'Уступчивость / Упрямство', 'Уступчивость', 'Упрямство', 1, 'Уступчивый легче меняет интерес или цель ради доступных ресурсов; упрямый меняет набор ресурсов и способов, сохраняя выбранный интерес.', 'Не путай с мягкостью, конфликтностью, покладистостью или силой воли.'],
+  ['ad', 'Аристократия / Демократия', 'Аристократия', 'Демократия', 1, 'Аристократический полюс быстрее считывает принадлежность к группе, роль, статус и нормы слоя; демократический оценивает человека индивидуально, слабее опираясь на групповой ранг.', 'Должность, армейская или корпоративная среда создают сильные выученные маркеры.'],
+  ['ts', 'Тактика / Стратегия', 'Тактика', 'Стратегия', 1, 'Тактик отталкивается от доступного следующего шага и уточняет цель по ходу; стратег удерживает дальнюю цель и подбирает либо отбрасывает шаги относительно неё.', 'Умение составлять планы есть у обоих полюсов; важно, что остаётся фиксированным при изменениях.'],
+  ['ce', 'Конструктивизм / Эмотивизм', 'Конструктивизм', 'Эмотивизм', 1, 'Конструктивист сначала меняет предметную ситуацию и через дело регулирует состояние; эмотивист сначала настраивает эмоциональную атмосферу и уже из неё переходит к делу.', 'Забота поступком и сочувственные формулы могут быть воспитанными социальными навыками.'],
+  ['cf', 'Беспечность / Предусмотрительность', 'Беспечность', 'Предусмотрительность', 1, 'Беспечный начинает с того, что доступно сейчас, и достраивает контекст по ходу; предусмотрительный заранее собирает условия, риски, ресурсы и недостающие сведения.', 'Не приравнивай тревожность к предусмотрительности, а смелость — к беспечности.'],
+  ['qd', 'Квестимность / Деклатимность', 'Квестимность', 'Деклатимность', 1, 'Квестим строит речь как обмен, оставляет открытые петли и ориентируется на ответ собеседника; деклатим выдаёт цельные завершённые утверждения и дольше удерживает монологическую форму.', 'Интервью, диктовка, монтаж и привычка к публичным выступлениям сильно искажают этот признак.'],
+  ['pn', 'Позитивизм / Негативизм', 'Позитивизм', 'Негативизм', 1, 'Позитивист начинает с имеющихся элементов и работающих связей; негативист замечает исключения, отсутствие, дефицит и то, чем объект не является.', 'Эмоциональный оптимизм или мрачность не равны этому информационному признаку.'],
+  ['pr', 'Процесс / Результат', 'Процесс', 'Результат', 1, 'Процессный полюс погружается в течение деятельности и внутренние стадии; результатный членит путь завершёнными итогами, закрывает этап и переключается.', 'Дедлайн, отчётность и проектный жаргон временно делают речь более результатной.'],
+  ['ms', 'Весёлость / Серьёзность', 'Весёлость', 'Серьёзность', 1, 'Весёлый полюс легче входит в общее поле идей и эмоций, предполагая разделяемый контекст; серьёзный удерживает личную позицию, дистанцию и индивидуальную ответственность смысла.', 'Юмор, улыбка, мрачный тон и любовь к компаниям не являются прямым тестом.'],
+  ['jd', 'Рассудительность / Решительность', 'Рассудительность', 'Решительность', 1, 'Рассудительный ценит подготовку, комфортное состояние и постепенное включение; решительный легче мобилизуется напряжением, фиксирует момент действия и входит в рывок.', 'Спортивная дисциплина, кризисная профессия и хронический стресс могут быть приобретённой адаптацией.']
+].map(([id, label, poleA, poleB, weight, focus, trap]) => ({ id: `reinin-${id}`, kind: 'reinin', label, poleA, poleB, weight, focus, trap }));
+
+const ASPECT_PROBES = [
+  ['te', 'Чёрная логика · ЧЛ', 'деловая эффективность, факты, польза, рабочие методы', 'тень: навязывание пользы; дар: деятельная забота'],
+  ['ti', 'Белая логика · БЛ', 'структуры, определения, классификации, непротиворечивость', 'тень: догматизм; дар: ясная система'],
+  ['fe', 'Чёрная этика · ЧЭ', 'эмоциональный фон, выразительность, заражение состоянием', 'тень: эмоциональное давление; дар: оживление людей'],
+  ['fi', 'Белая этика · БЭ', 'отношения, дистанция, личная оценка, верность', 'тень: морализаторство; дар: точность отношений'],
+  ['ne', 'Чёрная интуиция · ЧИ', 'возможности, варианты, необычные связи, потенциал', 'тень: распыление; дар: открытие возможностей'],
+  ['ni', 'Белая интуиция · БИ', 'время, тенденции, образы развития, предчувствие', 'тень: фатализм; дар: чувство своевременности'],
+  ['se', 'Чёрная сенсорика · ЧС', 'воля, границы, давление, захват пространства', 'тень: силовое давление; дар: защита и решительность'],
+  ['si', 'Белая сенсорика · БС', 'телесные ощущения, комфорт, качество состояния, гармония', 'тень: застревание в комфорте; дар: тонкая настройка состояния']
+].map(([id, label, focus, shaneri]) => ({ id: `aspect-${id}`, kind: 'aspect', label, focus, shaneri, weight: 1 }));
+
+const QUADRA_PROBE = {
+  id: 'quadra-spirit', kind: 'quadra', label: 'Дух квадры', weight: 1,
+  focus: 'Альфа: ЧИ+БЛ+ЧЭ+БС — любопытство, равный обмен идеями, лёгкость и комфорт; Бета: ЧЭ+БЛ+ЧС+БИ — мобилизация, иерархия, драматизм и общий исторический вектор; Гамма: ЧС+БЭ+ЧЛ+БИ — личная ответственность, результат, верность выбранным отношениям и реалистичный прогноз; Дельта: ЧЛ+БЭ+ЧИ+БС — полезность, развитие талантов, спокойная человечность и качество повседневности'
+};
+
+const ALL_PROBES = [...REININ_PROBES, QUADRA_PROBE, ...ASPECT_PROBES];
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const MODEL_A_POSITIONS = '1 программная: сильная базовая призма; 2 творческая: сильный гибкий инструмент; 3 ролевая: нормативная маска и напряжение; 4 болевая: уязвимость к критике; 5 суггестивная: потребность во внешней поддержке; 6 активационная: мотивируется поддержкой; 7 ограничительная: сильное жёсткое пресечение; 8 фоновая: сильная автоматическая забота без демонстрации';
+
+function stableModelIndex(seed, probeId, length) {
+  let hash = 2166136261;
+  const value = `${seed}:${probeId}`;
+  for (let index = 0; index < value.length; index += 1) hash = Math.imul(hash ^ value.charCodeAt(index), 16777619);
+  return (hash >>> 0) % length;
+}
+
+async function claimSharedProviderSlot(env, provider, traceId) {
+  if (!provider.shared || !env.DB) return;
+  const limit = Math.max(1, Math.min(10, Number(env.PROBE_REQUESTS_PER_MINUTE || 10)));
+  while (true) {
+    const now = Date.now();
+    const minuteBucket = Math.floor(now / 60000);
+    const firstSlot = crypto.getRandomValues(new Uint32Array(1))[0] % limit;
+    for (let offset = 0; offset < limit; offset += 1) {
+      const slot = (firstSlot + offset) % limit;
+      const claimed = await env.DB.prepare('INSERT OR IGNORE INTO provider_request_slots (minute_bucket, slot, trace_id, created_at) VALUES (?, ?, ?, datetime(\'now\'))')
+        .bind(minuteBucket, slot, traceId || '').run();
+      if (Number(claimed?.meta?.changes || 0) > 0) {
+        if (slot === firstSlot) env.DB.prepare('DELETE FROM provider_request_slots WHERE minute_bucket < ?').bind(minuteBucket - 3).run().catch(() => undefined);
+        return;
+      }
+    }
+    await delay(Math.max(1000, (minuteBucket + 1) * 60000 - now + 750));
+  }
+}
+
+function probePrompt(source, probe) {
+  if (probe.kind === 'reinin') {
+    return `${source}\n\nНЕЗАВИСИМАЯ ПРОВЕРКА ОДНОГО ПРИЗНАКА РЕЙНИНА: ${probe.label}. Рабочее различение: ${probe.focus} Контрольная ловушка: ${probe.trap} Рассматривай только эту шкалу. Не определяй ТИМ и не подгоняй ответ под тип. Ищи устойчивые способы выбора и речи, а не профессию, настроение, социальную роль или одно слово. Отдельно проверь наиболее сильное альтернативное объяснение. Приведи до трёх коротких дословных цитат из материала. Если данных мало, так и скажи. Вес признака при итоговом синтезе: ${probe.weight}. JSON строго: {"probeId":"${probe.id}","label":"${probe.label}","pole":"${probe.poleA}|${probe.poleB}|insufficient","score":0,"confidence":0,"evidence":[{"quote":"","observation":""}],"counterEvidence":[""],"alternativeExplanation":"","missing":""}. score от -100 (${probe.poleB}) до +100 (${probe.poleA}); confidence 0–100.`;
+  }
+  if (probe.kind === 'quadra') {
+    return `${source}\n\nНЕЗАВИСИМАЯ ПРОВЕРКА «ДУХ КВАДРЫ». Оцени не отдельные слова и не предполагаемый ТИМ, а устойчивую атмосферу ценностей, форму кооперации, отношение к силе, пользе, идеям, эмоциональной мобилизации, личной дистанции и телесному комфорту. Ориентир: ${probe.focus}. Не определяй ТИМ. Различай личные ценности, рабочую роль, культуру среды и желаемый образ. Для каждой квадры приведи аргумент «за» и возможное альтернативное объяснение. JSON строго: {"probeId":"quadra-spirit","label":"Дух квадры","scores":{"Альфа":0,"Бета":0,"Гамма":0,"Дельта":0},"leading":"Альфа|Бета|Гамма|Дельта|insufficient","confidence":0,"evidence":[{"quote":"","observation":""}],"counterEvidence":[""],"culturalCaveat":"","missing":""}. Баллы 0–100 не обязаны суммироваться до 100.`;
+  }
+  return `${source}\n\nНЕЗАВИСИМАЯ ПРОВЕРКА ОДНОГО ИНФОРМАЦИОННОГО АСПЕКТА: ${probe.label}. Фокус: ${probe.focus}. Таблица Шанэри как дополнительная линза: ${probe.shaneri}. Позиции Модели А: ${MODEL_A_POSITIONS}. Не определяй ТИМ. Отличай свободное использование аспекта от демонстративной роли, выученного жаргона и болезненной компенсации. Приведи до трёх коротких цитат. Предложи не более двух возможных позиций функции и явно укажи, если различить их нельзя. JSON строго: {"probeId":"${probe.id}","label":"${probe.label}","manifestation":"strong|mixed|weak|insufficient","confidence":0,"positionHypotheses":[{"position":0,"confidence":0,"reason":""}],"evidence":[{"quote":"","observation":""}],"shadowSignals":[""],"giftSignals":[""],"missing":""}.`;
+}
+
+async function runProbeWave(env, provider, probes, source, modelPool, mixSeed, meta) {
+  const settled = await Promise.allSettled(probes.map(async probe => {
+    const model = modelPool[stableModelIndex(mixSeed, probe.id, modelPool.length)];
+    await claimSharedProviderSlot(env, provider, meta(`probe:${probe.id}`).traceId);
+    const result = await callTextModel(provider, probePrompt(source, probe), model, { ...meta(`probe:${probe.id}`), maxTokens: 850, timeoutMs: 45000 });
+    return { ...result, model };
+  }));
+  return settled.map((entry, index) => entry.status === 'fulfilled'
+    ? { ...entry.value, probeId: probes[index].id, label: probes[index].label, status: 'done' }
+    : { probeId: probes[index].id, label: probes[index].label, model: modelPool[stableModelIndex(mixSeed, probes[index].id, modelPool.length)], status: 'warning', error: entry.reason instanceof Error ? entry.reason.message : String(entry.reason), confidence: 0 });
+}
+
 async function runPipeline(env, provider, text, audioContext, lockedDichotomies = {}, lockedPsychosophy = {}, preferredTim = '', diagnostics = {}) {
-  const observationsModel = env.OBSERVATION_MODEL || provider.model;
-  const hypothesesModel = env.HYPOTHESIS_MODEL || provider.model;
-  const criticModel = env.CRITIC_MODEL || provider.model;
-  const finalModel = env.FINAL_MODEL || provider.model;
+  const isKnyazev = provider.provider === 'knyazev';
+  const modelPool = isKnyazev
+    ? String(env.KNYAZEV_MIX_MODELS || 'minimax-2.7,deepseek-v4-flash').split(',').map(item => item.trim()).filter(Boolean)
+    : [provider.model];
+  const finalModel = isKnyazev ? (env.FINAL_MODEL || 'minimax-2.7') : provider.model;
 
   const hardConstraints = Object.keys(lockedDichotomies || {}).length || Object.keys(lockedPsychosophy || {}).length
     ? `\n\nЖЁСТКИЕ ОГРАНИЧЕНИЯ ПОЛЬЗОВАТЕЛЯ (не меняй и не оспаривай их при пересчёте):\nДихотомии: ${compact(lockedDichotomies)}\nПсихософия: ${compact(lockedPsychosophy)}`
@@ -218,36 +310,32 @@ async function runPipeline(env, provider, text, audioContext, lockedDichotomies 
   const preference = TYPE_NAMES[preferredTim] ? `\n\nПРЕДПОЧТЕНИЕ ПОЛЬЗОВАТЕЛЯ: ${preferredTim} (${TYPE_NAMES[preferredTim]}). Это не доказательство и не жёсткий замок: отдельно проверь эту версию и честно укажи, подтверждается ли она.` : '';
   const source = `ТЕКСТ УЧАСТНИКА:\n${text || '[текста нет]'}\n\nАУДИО/ТРАНСКРИПТ:\n${audioContext || '[аудио нет]'}${hardConstraints}${preference}`;
   const meta = stage => ({ traceId: diagnostics.traceId, fullLog: diagnostics.fullLog, stage });
-  const strongAnthropic = provider.provider === 'anthropic' && /(?:fable|opus|sonnet-5)/i.test(provider.model || '');
-  if (strongAnthropic) {
-    const result = await callTextModel(provider, `${source}\n\nЦЕЛЬ: построить проверяемую, честную гипотезу о соционическом типе человека. Внутренне выполни четыре проверки: (1) отдели наблюдаемые факты и короткие цитаты от интерпретаций; (2) сравни основной ТИМ минимум с двумя альтернативами; (3) постарайся опровергнуть лидирующую версию и найди натяжки; (4) собери итог и явно назови недостающие данные. Не ставь высокую уверенность без независимых подтверждений. Не типируй по одному слову, профессии, настроению или социальной роли. Пиши просто и прямо. Не выводи внутренние рассуждения. Основной тип и альтернативы только из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. Верни только JSON: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""]}.`, finalModel, meta('deep-single'));
-    return {
-      result,
-      stages: [
-        { id: 'observations', label: 'Наблюдения', status: 'done', model: `${finalModel} · единый глубокий запрос` },
-        { id: 'hypotheses', label: 'Гипотезы', status: 'done', model: finalModel },
-        { id: 'critic', label: 'Критик', status: 'done', model: finalModel },
-        { id: 'final', label: 'Итог', status: 'done', model: finalModel }
-      ],
-      providerUsed: `${provider.provider}:${finalModel}`
-    };
+  const requestsPerMinute = Math.max(1, Math.min(10, Number(env.PROBE_REQUESTS_PER_MINUTE || 10)));
+  const waves = [];
+  for (let index = 0; index < ALL_PROBES.length; index += requestsPerMinute) waves.push(ALL_PROBES.slice(index, index + requestsPerMinute));
+  const probeResults = [];
+  for (let index = 0; index < waves.length; index += 1) {
+    const waveStartedAt = Date.now();
+    probeResults.push(...await runProbeWave(env, provider, waves[index], source, modelPool, diagnostics.mixSeed || diagnostics.traceId, meta));
+    if (index < waves.length - 1) {
+      const remainingWindow = Math.max(0, 61000 - (Date.now() - waveStartedAt));
+      if (remainingWindow) await delay(remainingWindow);
+    }
   }
-  const [observations, hypotheses, criticism] = await Promise.all([
-    callTextModel(provider, `${source}\n\nЗАДАЧА 1. Без типирования извлеки наблюдения: проверяемые факты, короткие цитаты, повторяющиеся способы выбора, реакции на неопределённость, стиль аргументации. Отделяй наблюдение от интерпретации. JSON: {"facts":[{"quote":"","observation":"","relevance":""}],"missingData":[""]}.`, observationsModel, meta('observations')),
-    callTextModel(provider, `${source}\n\nЗАДАЧА 2. Независимо построй конкурирующие гипотезы по соционике: основной ТИМ и минимум две альтернативы из списка ${Object.keys(TYPE_NAMES).join(', ')}. Не выдавай уверенность выше данных. JSON: {"primary":{"abbreviation":"","name":"","confidence":0,"reason":""},"alternatives":[{"abbreviation":"","name":"","confidence":0,"reason":""}],"dichotomies":[{"name":"Экстраверсия / Интроверсия","result":"","confidence":0,"evidence":""}],"uncertainties":[""]}. Уверенность 0–100.`, hypothesesModel, meta('hypotheses')),
-    callTextModel(provider, `${source}\n\nЗАДАЧА 3. Ты независимый критик до знакомства с чужой гипотезой. Найди признаки, которые чаще всего типируют ошибочно: социальные роли, профессию, настроение, выученный жаргон, желаемый образ. Назови взаимоисключающие объяснения и вопросы, способные их развести. JSON: {"problems":[""],"counterHypotheses":[""],"whatToAskNext":[""],"confidenceCeiling":0}.`, criticModel, meta('critic'))
-  ]);
-  const finalResult = await callTextModel(provider, `${source}\n\nНАБЛЮДЕНИЯ:\n${compact(observations)}\n\nГИПОТЕЗЫ:\n${compact(hypotheses)}\n\nКРИТИКА:\n${compact(criticism)}\n\nЗАДАЧА 4. Собери честный итог. Если данных мало, так и напиши. Основной тип и альтернативы должны быть из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. JSON строго: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""]}. Явно укажи сомнения.`, finalModel, meta('final'));
+
+  const successful = probeResults.filter(item => item.status === 'done');
+  await claimSharedProviderSlot(env, provider, diagnostics.traceId);
+  const finalResult = await callTextModel(provider, `${source}\n\nРЕЗУЛЬТАТЫ 24 НЕЗАВИСИМЫХ ПРОВЕРОК:\n${compact(successful)}\n\nЗАДАЧА СИНТЕЗА. Сопоставь 15 признаков Рейнина, дух квадры и 8 аспектов с гипотезами позиций Модели А. Базис Юнга и Статика/Динамика имеют больший вес, Рациональность/Иррациональность — половинный; остальные признаки — обычный. Не считай отсутствие признака доказательством противоположного. Сначала сравни минимум три конкурирующих ТИМа, затем выступи критиком лидера: ищи натяжки, ролевое поведение, культурную среду, желаемый образ и противоречащие цитаты. Если надёжных данных нет, верни confidenceLevel=insufficient. Основной тип и альтернативы только из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. JSON строго: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""],"quadra":{"name":"","confidence":0,"evidence":""},"probeAgreement":{"agree":0,"disagree":0,"insufficient":0}}. Не раскрывай скрытую цепочку рассуждений; покажи только проверяемые основания и сомнения.`, finalModel, { ...meta('final-synthesis'), maxTokens: 5200, timeoutMs: 100000 });
 
   return {
     result: finalResult,
+    probeResults,
     stages: [
-      { id: 'observations', label: 'Наблюдения', status: 'done', model: observationsModel },
-      { id: 'hypotheses', label: 'Гипотезы', status: 'done', model: hypothesesModel },
-      { id: 'critic', label: 'Критик', status: 'done', model: criticModel },
-      { id: 'final', label: 'Итог', status: 'done', model: finalModel }
+      ...probeResults.map(item => ({ id: item.probeId, label: item.label, status: item.status, model: item.model })),
+      { id: 'final', label: 'Синтез и критик', status: 'done', model: finalModel }
     ],
-    providerUsed: provider.provider
+    providerUsed: `${provider.provider}:${modelPool.join(' + ')} → ${finalModel}`,
+    requestPlan: { probes: ALL_PROBES.length, requestsPerMinute, waves: waves.length, fallbackAfterSeconds: 210 }
   };
 }
 
@@ -378,7 +466,7 @@ async function handleAnalyze(request, env, visitor, ctx) {
   let pipeline = await runPipeline(
     env, provider, String(input.text || ''), audioContext,
     input.lockedDichotomies || {}, input.lockedPsychosophy || {}, input.preferredTim || '',
-    { traceId, fullLog: Boolean(input.debugConsent) }
+    { traceId, mixSeed: cleanId(input.sessionId) || traceId, fullLog: Boolean(input.debugConsent) }
   );
   pipeline = applyExplicitRandomFallback(pipeline, input, audioContext, traceId);
   await finishDebugCopy(env, debugCopy, pipeline, audioContext);

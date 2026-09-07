@@ -28,4 +28,14 @@ CREATE TABLE IF NOT EXISTS debug_submissions (
 
 CREATE INDEX IF NOT EXISTS idx_debug_submissions_expiry ON debug_submissions(expires_at);
 CREATE INDEX IF NOT EXISTS idx_debug_submissions_session ON debug_submissions(session_id, created_at);
+
+CREATE TABLE IF NOT EXISTS provider_request_slots (
+  minute_bucket INTEGER NOT NULL,
+  slot INTEGER NOT NULL,
+  trace_id TEXT,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (minute_bucket, slot)
+);
+
+CREATE INDEX IF NOT EXISTS idx_provider_request_slots_created ON provider_request_slots(minute_bucket);
 PRAGMA optimize;
