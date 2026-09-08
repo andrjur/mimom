@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Лаборатория: Правило левой руки и электромагнетизм</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0b0e14;
+      color: #eee;
+    }
+    #canvas-container { width: 100vw; height: 100vh; }
+    #ui {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(18, 22, 32, 0.92);
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      width: 320px;
+      border: 1px solid rgba(255,255,255,0.12);
+      z-index: 10;
+    }
+    h2 { margin: 0 0 12px 0; font-size: 17px; color: #4fc3f7; }
+    .control-group { margin-bottom: 10px; }
+    label { display: block; font-size: 13px; margin-bottom: 4px; color: #bbb; }
+    select, input[type="range"], button {
+      width: 100%;
+      background: #232936;
+      color: #fff;
+      border: 1px solid #445;
+      padding: 6px 10px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+    .btn-reset {
+      background: #0288d1;
+      border: none;
+      font-weight: bold;
+      margin-top: 8px;
+      padding: 9px;
+      transition: 0.2s;
+    }
+    .btn-reset:hover { background: #039be5; }
+    .legend {
+      margin-top: 12px;
+      font-size: 12.5px;
+      line-height: 1.7;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding-top: 8px;
+    }
+    .legend span { font-weight: bold; }
+    .math-card {
+      background: rgba(0,0,0,0.35);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #81d4fa;
+      line-height: 1.5;
+      border-left: 3px solid #0288d1;
+    }
+  </style>
+  <!-- Three.js + OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+  <div id="ui">
+    <h2>⚡ 3D-Лаборатория силы Лоренца</h2>
+    
+    <div class="control-group">
+      <label>Режим движения частицы:</label>
+      <select id="modeSelect">
+        <option value="circle">Влёт ⟂ B (Идеальная окружность)</option>
+        <option value="helix">Влёт под углом к B (Винт / Спираль)</option>
+        <option value="parallel">Влёт ∥ B (Прямая линия)</option>
+        <option value="electric">Влёт в поле E (Парабола)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>Знак заряда частицы:</label>
+      <select id="chargeSign">
+        <option value="1">Положительный (+q)</option>
+        <option value="-1">Отрицательный (-q)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>Индукция B / Поле E: <span id="fieldVal">1.0</span> Тл</label>
+      <input type="range" id="fieldSlider" min="0.3" max="2.5" step="0.1" value="1.0">
+    </div>
+
+    <button class="btn-reset" id="resetBtn">Перезапустить траекторию</button>
+
+    <!-- Вывод расчётов в реальном времени -->
+    <div class="math-card" id="calcBox">
+      Скорость v: 5.00 м/с<br>
+      Радиус R = mv/qB: 5.00 м<br>
+      Период T = 2πm/qB: 6.28 с
+    </div>
+
+    <div class="legend">
+      <div>🔴 <span>Сила Лоренца (F):</span> Большой палец</div>
+      <div>🔵 <span>Магнитное поле (B):</span> Входит в ладонь</div>
+      <div>🟢 <span>Скорость (v):</span> 4 пальца (+q)</div>
+    </div>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <script>
+    // --- 1. Инициализация сцены ---
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0d14);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 22, 28);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // Сетка и свет
+    const grid = new THREE.GridHelper(50, 50, 0x334455, 0x161b24);
+    grid.position.y = 0;
+    scene.add(grid);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+
+    // --- 2. Векторы правила левой руки ---
+    const arrowV = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(), 4, 0x00ff66, 1, 0.4);
+    const arrowB = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(), 4, 0x0099ff, 1, 0.4);
+    const arrowF = new THREE.ArrowHelper(new THREE.Vector3(0,0,1), new THREE.Vector3(), 4, 0xff3344, 1, 0.4);
+    scene.add(arrowV, arrowB, arrowF);
+
+    // Частица
+    const pMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff4400, roughness: 0.3 });
+    const particle = new THREE.Mesh(new THREE.SphereGeometry(0.65, 32, 32), pMat);
+    scene.add(particle);
+
+    // Траектория частицы
+    const maxPoints = 3000;
+    const positions = new Float32Array(maxPoints * 3);
+    const trailGeo = new THREE.BufferGeometry();
+    trailGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const trailMat = new THREE.LineBasicMaterial({ color: 0xffcc00, transparent: true, opacity: 0.85 });
+    const trail = new THREE.Line(trailGeo, trailMat);
+    scene.add(trail);
+
+    // Физические переменные
+    let trailCount = 0;
+    const pos = new THREE.Vector3();
+    const vel = new THREE.Vector3();
+    const dt = 0.025; // Шаг по времени
+
+    function resetParticle() {
+      trailCount = 0;
+      trailGeo.setDrawRange(0, 0);
+
+      const mode = document.getElementById('modeSelect').value;
+      const q = parseFloat(document.getElementById('chargeSign').value);
+      const B = parseFloat(document.getElementById('fieldSlider').value);
+
+      if (mode === 'circle') {
+        // Ставим центр окружности в (0, 5, 0)
+        const R = 5.0 / (Math.abs(q) * B);
+        pos.set(0, 5, -R * q);
+        vel.set(5, 0, 0);
+      } else if (mode === 'helix') {
+        pos.set(0, 2, -4);
+        vel.set(5, 1.6, 0);
+      } else if (mode === 'parallel') {
+        pos.set(0, 1, 0);
+        vel.set(0, 5, 0);
+      } else if (mode === 'electric') {
+        pos.set(-18, 12, 0);
+        vel.set(7, 0, 0);
+      }
+
+      particle.position.copy(pos);
+      updateInfoCard();
+    }
+
+    function updateInfoCard() {
+      const mode = document.getElementById('modeSelect').value;
+      const q = Math.abs(parseFloat(document.getElementById('chargeSign').value));
+      const val = parseFloat(document.getElementById('fieldSlider').value);
+      const card = document.getElementById('calcBox');
+
+      if (mode === 'electric') {
+        card.innerHTML = `Ускорение a = qE/m: ${(q * val * 2).toFixed(2)} м/с²<br>Траектория: Парабола<br>F_э = qE: ${(q * val * 2).toFixed(2)} Н`;
+      } else if (mode === 'parallel') {
+        card.innerHTML = `Угол α = 0° (v ∥ B)<br>Сила F_Л = qvB·sin(0°) = 0<br>Траектория: Прямая линия`;
+      } else {
+        const v = 5.0;
+        const R = v / (q * val);
+        const T = (2 * Math.PI) / (q * val);
+        const F = q * v * val;
+        card.innerHTML = `Радиус R = mv/qB: <b>${R.toFixed(2)} м</b><br>Период T = 2πm/qB: <b>${T.toFixed(2)} с</b><br>Сила Лоренца F_Л: <b>${F.toFixed(2)} Н</b>`;
+      }
+    }
+
+    // Слушатели интерфейса
+    document.getElementById('modeSelect').addEventListener('change', resetParticle);
+    document.getElementById('fieldSlider').addEventListener('input', (e) => {
+      document.getElementById('fieldVal').innerText = e.target.value;
+      resetParticle();
+    });
+    document.getElementById('chargeSign').addEventListener('change', (e) => {
+      const sign = e.target.value;
+      pMat.color.setHex(sign == 1 ? 0xffaa00 : 0x00e5ff);
+      pMat.emissive.setHex(sign == 1 ? 0xff4400 : 0x0077aa);
+      resetParticle();
+    });
+    document.getElementById('resetBtn').addEventListener('click', resetParticle);
+
+    // --- 3. Точный физический цикл ---
+    const axisY = new THREE.Vector3(0, 1, 0);
+
+    function updatePhysics() {
+      const q = parseFloat(document.getElementById('chargeSign').value);
+      const fieldVal = parseFloat(document.getElementById('fieldSlider').value);
+      const mode = document.getElementById('modeSelect').value;
+
+      let force = new THREE.Vector3();
+      let B_vec = new THREE.Vector3(0, fieldVal, 0);
+      let E_vec = new THREE.Vector3(0, -fieldVal * 2, 0);
+
+      if (mode === 'electric') {
+        // В электрическом поле скорость увеличивается
+        force.copy(E_vec).multiplyScalar(q);
+        vel.addScaledVector(force, dt);
+      } else if (mode === 'parallel') {
+        force.set(0, 0, 0);
+      } else {
+        // ТОЧНОЕ вращение без накопления погрешности:
+        // Вектор скорости поворачивается вокруг оси B (Y) на угол dTheta = -q * B * dt
+        const dTheta = -q * fieldVal * dt;
+        vel.applyAxisAngle(axisY, dTheta);
+        
+        // Сила Лоренца F = q * [v x B]
+        force.crossVectors(vel, B_vec).multiplyScalar(q);
+      }
+
+      // Перемещение
+      pos.addScaledVector(vel, dt);
+      particle.position.copy(pos);
+
+      // Обновление векторов левой руки на частице
+      arrowV.position.copy(pos);
+      if (vel.lengthSq() > 0.001) {
+        arrowV.setDirection(vel.clone().normalize());
+      }
+
+      arrowB.position.copy(pos);
+      if (mode === 'electric') {
+        arrowB.setDirection(E_vec.clone().normalize());
+        arrowB.setColor(0xffff00);
+      } else {
+        arrowB.setDirection(axisY);
+        arrowB.setColor(0x0099ff);
+      }
+
+      arrowF.position.copy(pos);
+      if (force.lengthSq() > 0.001) {
+        arrowF.setDirection(force.clone().normalize());
+        arrowF.setLength(Math.min(force.length() * 0.8, 5), 0.8, 0.3);
+      } else {
+        arrowF.setLength(0.001);
+      }
+
+      // Отрисовка хвоста
+      if (trailCount < maxPoints) {
+        positions[trailCount * 3] = pos.x;
+        positions[trailCount * 3 + 1] = pos.y;
+        positions[trailCount * 3 + 2] = pos.z;
+        trailCount++;
+        trailGeo.attributes.position.needsUpdate = true;
+        trailGeo.setDrawRange(0, trailCount);
+      }
+
+      // Перезапуск при вылете за границы
+      if (pos.length() > 38 || pos.y < -5 || pos.y > 35) {
+        resetParticle();
+      }
+    }
+
+    // --- 4. Цикл анимации ---
+    function animate() {
+      requestAnimationFrame(animate);
+      updatePhysics();
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Старт
+    resetParticle();
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
