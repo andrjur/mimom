@@ -41,8 +41,8 @@ export async function readJob(env, id, owner, after = 0) {
 export async function refundJob(env, id) {
   // D1 batch is transactional. The status guard makes replay harmless.
   await env.DB.batch([
-    env.DB.prepare("UPDATE users SET analysis_credits = analysis_credits + 1 WHERE session_id = (SELECT owner FROM analysis_jobs WHERE id = ? AND charged = 1)").bind(id),
-    env.DB.prepare('UPDATE analysis_jobs SET charged = 0 WHERE id = ?').bind(id)
+    env.DB.prepare("UPDATE users SET analysis_credits = analysis_credits + 1 WHERE session_id = (SELECT owner FROM analysis_jobs WHERE id = ? AND charged = 1 AND status IN ('error','cancelled'))").bind(id),
+    env.DB.prepare("UPDATE analysis_jobs SET charged = 0 WHERE id = ? AND status IN ('error','cancelled')").bind(id)
   ]);
 }
 
