@@ -1,0 +1,6 @@
+{
+ "name": "typist-local-test", "main": "worker.js", "compatibility_date": "2026-09-01",
+ "workflows": [{ "binding": "TYPIST_WORKFLOW", "name": "typist-local-analysis", "class_name": "TypistWorkflow" }],
+ "d1_databases": [{ "binding": "DB", "database_name": "typist-test", "database_id": "00000000-0000-0000-0000-000000000000" }],
+ "vars": { "KNYAZEV_API_KEY": "mock-not-a-real-key", "JOB_ENCRYPTION_KEY": "local-fixture-key-only", "KNYAZEV_BASE_URL": "http://127.0.0.1:8793/v1", "KNYAZEV_MODEL": "minimax-2.7", "FINAL_MODEL": "minimax-2.7", "KNYAZEV_MIX_MODELS": "minimax-2.7,deepseek-v4-flash,kimi-2.6", "ALLOW_CUSTOM_BYOK": "true", "PROBE_REQUESTS_PER_MINUTE": "10" }
+}

@@ -201,6 +201,7 @@ h3 { line-height: 1.25; }
 .hub-portrait figcaption strong, .hub-portrait figcaption span { display: block; }
 .hub-portrait figcaption strong { font-size: 13px; }
 .hub-portrait figcaption span { margin-top: 2px; font-size: 11px; }
+.hub-portrait figcaption .hub-portrait__badge { width: fit-content; max-width: 100%; margin: -28px 0 12px -10px; padding: 11px 14px; background: var(--ink); color: var(--gold); border: 1px solid var(--gold); box-shadow: 5px 5px 0 #7956c9; font-size: clamp(11px, 1.1vw, 14px); line-height: 1.5; letter-spacing: .05em; text-transform: uppercase; transform: rotate(-2deg); }
 .hub-projects { padding-block: 105px; }
 .hub-section-head { max-width: 800px; margin-bottom: 48px; }
 .hub-section-head > p:last-child { color: var(--muted); font-size: 17px; }

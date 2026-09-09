@@ -1,0 +1,10 @@
+{
+  "name": "Socionics AI Typist",
+  "description": "An application that asks questions for socionics typing, listens to voice or text answers, and then provides a detailed analysis of all dichotomies to determine the user's socionic type.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

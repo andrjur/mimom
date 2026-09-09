@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": [
+    "index.tsx",
+    "App.tsx",
+    "typistTypes.ts",
+    "constants.ts",
+    "components/TypistWorkbench.tsx",
+    "components/TypistResultCard.tsx",
+    "components/AnalysisPipeline.tsx",
+    "components/ApiSetupSheet.tsx",
+    "components/relations.ts",
+    "services/localTypist.ts",
+    "services/typistApi.ts",
+    "services/sessionStorage.ts",
+    "services/archiveService.ts"
+  ]
+}
