@@ -346,8 +346,8 @@ async function runProbeWave(env, providers, probes, source, mixSeed, meta, diagn
     let result;
     let usedModel = model;
     try {
-      // No app-level output cap for probes. Provider context/output limits still apply.
-      result = await callTextModel(provider, probePrompt(source, probe), model, { ...meta(`probe:${probe.id}`), timeoutMs: 90000 });
+      // 2400 is a provider-safe ceiling for a structured probe; the old 850-token cap was truncating JSON.
+      result = await callTextModel(provider, probePrompt(source, probe), model, { ...meta(`probe:${probe.id}`), maxTokens: 2400, timeoutMs: 90000 });
     } catch (error) {
       if (provider.provider !== 'knyazev') throw error;
       // One bounded retry within the inexpensive Gonka pool; never silently buy a premium model.
@@ -355,7 +355,7 @@ async function runProbeWave(env, providers, probes, source, mixSeed, meta, diagn
       await event('waiting', { model: usedModel, note: 'Сбой Gonka: одна попытка другой дешёвой моделью' });
       await claimSharedProviderSlot(env, provider, meta(`probe:${probe.id}:budget-fallback`).traceId);
       await event('running', { model: usedModel });
-      result = await callTextModel(provider, probePrompt(source, probe), usedModel, { ...meta(`probe:${probe.id}:budget-fallback`), timeoutMs: 90000 });
+      result = await callTextModel(provider, probePrompt(source, probe), usedModel, { ...meta(`probe:${probe.id}:budget-fallback`), maxTokens: 2400, timeoutMs: 90000 });
       result.modelFallback = { requested: model, used: usedModel, reason: error instanceof Error ? error.message : String(error) };
     }
     const verified = verifyQuotes(result, source);
