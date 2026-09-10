@@ -170,7 +170,9 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
   const model = modelOverride || config.model;
   const startedAt = Date.now();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort('MODEL_TIMEOUT'), Number(meta.timeoutMs || 90000));
+  // Gonka can successfully answer after 3-4 minutes. Do not abort it at 45-90 seconds.
+  const timeoutMs = config.provider === 'knyazev' ? Math.max(270000, Number(meta.timeoutMs || 0)) : Number(meta.timeoutMs || 90000);
+  const timeout = setTimeout(() => controller.abort('MODEL_TIMEOUT'), timeoutMs);
   const logFull = Boolean(config.logPrompts && meta.fullLog);
   console.log({
     event: 'typist.model.request', traceId: meta.traceId || '', stage: meta.stage || 'unknown',
@@ -365,7 +367,7 @@ async function runProbeWave(env, providers, probes, source, mixSeed, meta, diagn
       return { status: 'warning', error: String(error?.message || error), confidence: 0, model, provider: provider.label || provider.provider };
     }
     };
-    return diagnostics.step ? diagnostics.step.do(`probe-${probe.id}`, { retries: { limit: 0, delay: '1 second' }, timeout: '10 minutes' }, execute) : execute();
+    return diagnostics.step ? diagnostics.step.do(`probe-${probe.id}`, { retries: { limit: 0, delay: '1 second' }, timeout: '30 minutes' }, execute) : execute();
   }));
   return settled.map((entry, index) => entry.status === 'fulfilled'
     ? { ...entry.value, probeId: probes[index].id, label: probes[index].label, status: entry.value.status || 'done' }
