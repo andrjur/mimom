@@ -8,6 +8,9 @@
   "workflows": [{ "binding": "TYPIST_WORKFLOW", "name": "indikov-typist-analysis", "class_name": "TypistWorkflow" }],
   "triggers": { "crons": ["15 * * * *"] },
   "vars": {
+    "INCLUDED_PROVIDER": "just",
+    "JUST_BASE_URL": "https://api.justwoker.icu/v1",
+    "JUST_MODEL": "gpt-5.6-luna",
     "KNYAZEV_BASE_URL": "https://knyazevai.work/v1",
     "KNYAZEV_MODEL": "minimax-2.7",
     "KNYAZEV_MIX_MODELS": "minimax-2.7,deepseek-v4-flash,kimi-2.6",

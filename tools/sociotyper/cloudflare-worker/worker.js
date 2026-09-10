@@ -121,8 +121,17 @@ function resolveProvider(env, byok = {}) {
       logPrompts: env.LOG_PROMPTS === 'true'
     };
   }
-  const includedKey = env.KNYAZEV_API_KEY;
+  const includedProvider = String(env.INCLUDED_PROVIDER || 'knyazev').toLowerCase();
+  const includedKey = includedProvider === 'just' ? env.JUST_API_KEY : env.KNYAZEV_API_KEY;
   if (!includedKey) throw new Error('INCLUDED_PROVIDER_NOT_CONFIGURED');
+  if (includedProvider === 'just') return {
+    provider: 'custom',
+    shared: true,
+    key: includedKey,
+    baseUrl: (env.JUST_BASE_URL || 'https://api.justwoker.icu/v1').replace(/\/$/, ''),
+    model: env.JUST_MODEL || 'gpt-5.6-luna',
+    logPrompts: env.LOG_PROMPTS === 'true'
+  };
   return {
     provider: 'knyazev',
     shared: true,
@@ -674,7 +683,7 @@ export default {
     const cookie = visitor.fresh ? `nid=${encodeURIComponent(visitor.id)}; Path=/; Max-Age=31536000; Secure; SameSite=Lax; HttpOnly` : '';
     try {
       let response;
-      if (url.pathname.endsWith('/health') && request.method === 'GET') response = json({ ok: true, release: 'stability-1', storage: Boolean(env.DB), debugStorage: Boolean(env.DEBUG_BUCKET), omni: Boolean(env.OMNI_API_KEY), includedReady: Boolean(env.KNYAZEV_API_KEY), jobsReady: Boolean(env.TYPIST_WORKFLOW && env.JOB_ENCRYPTION_KEY) });
+      if (url.pathname.endsWith('/health') && request.method === 'GET') response = json({ ok: true, release: 'stability-1', storage: Boolean(env.DB), debugStorage: Boolean(env.DEBUG_BUCKET), omni: Boolean(env.OMNI_API_KEY), includedProvider: String(env.INCLUDED_PROVIDER || 'knyazev'), includedReady: Boolean(env.KNYAZEV_API_KEY || env.JUST_API_KEY), jobsReady: Boolean(env.TYPIST_WORKFLOW && env.JOB_ENCRYPTION_KEY) });
       else if (url.pathname.endsWith('/jobs') && request.method === 'POST') response = await createJob(request, env, visitor);
       else if (/\/jobs\/[a-zA-Z0-9_-]+$/.test(url.pathname)) {
         const id = url.pathname.split('/').pop();
