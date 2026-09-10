@@ -22,6 +22,14 @@ type Provider = {
 
 const PROVIDERS: Provider[] = [
   {
+    id: 'routerai', icon: '◉', name: 'RouterAI', hint: 'Для экономных опытов: Mercury 2.5. Качество типирования проверяем отдельно.',
+    keyUrl: 'https://routerai.ru', baseUrl: 'https://routerai.ru/api/v1', model: 'inception/mercury-2.5', placeholder: 'sk-…', accent: '#3865ef',
+    screenTitle: 'RouterAI → Ключи', createLabel: 'Создать API-ключ',
+    desktop: ['Откройте личный кабинет RouterAI → Ключи.', 'Создайте API-ключ с лимитом расходов.', 'Вставьте ключ; для запросов нужен доступный баланс.'],
+    phone: ['Войдите в RouterAI и откройте «Ключи».', 'Создайте и скопируйте API-ключ.', 'Вернитесь сюда и вставьте ключ.'],
+    models: [{ label: 'Mercury 2.5 · экономный эксперимент', value: 'inception/mercury-2.5' }]
+  },
+  {
     id: 'knyazev', icon: '⚡', name: 'Knyazev AI / Gonka', hint: 'Экстрадешёвый провайдер длинных запросов от наших друзей.',
     keyUrl: 'https://knyazevai.work/ai-api/', baseUrl: 'https://knyazevai.work/v1', model: 'minimax-2.7', placeholder: 'kn_live_…', accent: '#c77822',
     screenTitle: 'AI API → API-ключи', createLabel: 'Создать ключ',

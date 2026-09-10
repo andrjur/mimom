@@ -92,9 +92,10 @@ function parseJsonResponse(payload) {
 function resolveProvider(env, byok = {}) {
   if (byok.mode === 'byok') {
     if (!byok.key || typeof byok.key !== 'string' || byok.key.length < 8) throw new Error('BYOK_KEY_MISSING');
-    const allowed = new Set(['knyazev', 'gemini', 'openai', 'anthropic', 'openrouter', 'custom']);
+    const allowed = new Set(['knyazev', 'routerai', 'gemini', 'openai', 'anthropic', 'openrouter', 'custom']);
     if (!allowed.has(byok.provider)) throw new Error('BYOK_PROVIDER_NOT_ALLOWED');
     const defaults = {
+      routerai: 'https://routerai.ru/api/v1',
       knyazev: 'https://knyazevai.work/v1',
       gemini: 'https://generativelanguage.googleapis.com/v1beta/openai',
       openai: 'https://api.openai.com/v1',

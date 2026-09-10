@@ -98,7 +98,7 @@ export interface PersonSession {
   liveStages?: PipelineStage[];
 }
 
-export type ProviderId = 'knyazev' | 'gemini' | 'openai' | 'anthropic' | 'openrouter' | 'custom';
+export type ProviderId = 'knyazev' | 'routerai' | 'gemini' | 'openai' | 'anthropic' | 'openrouter' | 'custom';
 export type ConnectionPolicy = 'always' | 'random' | 'off' | 'system';
 
 export interface ApiConnection {

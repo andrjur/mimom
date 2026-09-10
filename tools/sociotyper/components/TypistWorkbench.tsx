@@ -29,6 +29,7 @@ const DEFAULT_BYOK: ByokSettings = {
 };
 
 const BYOK_DEFAULTS: Record<Exclude<ByokSettings['provider'], 'custom'>, Pick<ByokSettings, 'baseUrl' | 'model'>> = {
+  routerai: { baseUrl: 'https://routerai.ru/api/v1', model: 'inception/mercury-2.5' },
   knyazev: { baseUrl: 'https://knyazevai.work/v1', model: 'minimax-2.7' },
   gemini: { baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-3.6-flash' },
   openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4.1-mini' },
@@ -242,7 +243,7 @@ const QuickApiConnect: React.FC<{
     <div className="tw-quick-api-copy"><KeyRound size={20} /><div><span className="tw-kicker">Свой API · без лимита сайта</span><b>Вставьте ключ прямо здесь</b><small>Для друзей: Knyazev AI, Gemini, OpenAI, Claude, OpenRouter или другой совместимый API.</small></div></div>
     <div className="tw-quick-api-controls">
       <select value={provider} onChange={event => { setProvider(event.target.value as ByokSettings['provider']); setStatus('idle'); }} aria-label="Провайдер API">
-        <option value="knyazev">Knyazev AI / Gonka</option><option value="gemini">Google Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic Claude</option><option value="openrouter">OpenRouter</option><option value="custom">Другой API</option>
+        <option value="knyazev">Knyazev AI / Gonka</option><option value="routerai">RouterAI · Mercury 2.5 · экономно</option><option value="gemini">Google Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic Claude</option><option value="openrouter">OpenRouter</option><option value="custom">Другой API</option>
       </select>
       <div className="tw-quick-api-key"><input type="password" autoComplete="off" value={key} onChange={event => { setKey(event.target.value); setStatus('idle'); }} placeholder={provider === 'knyazev' ? 'kn_live_…' : 'Вставьте API-ключ'} /><button onClick={connect} disabled={!key.trim() || status === 'checking'}>{status === 'checking' ? <LoaderCircle size={17} className="tw-spin" /> : 'Подключить'}</button></div>
       <button className="tw-quick-api-more" onClick={onAdvanced}>Скриншоты и другие настройки</button>
