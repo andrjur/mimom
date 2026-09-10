@@ -22,6 +22,14 @@ type Provider = {
 
 const PROVIDERS: Provider[] = [
   {
+    id: 'just', icon: '✦', name: 'JustDoWork', hint: 'Три недорогие модели для быстрых опытов: Luna, Terra и Sol.',
+    keyUrl: 'https://api.justwoker.icu/dashboard/overview', baseUrl: 'https://api.justwoker.icu/v1', model: 'gpt-5.6-luna', placeholder: 'sk-…', accent: '#18b7a5',
+    screenTitle: 'JustDoWork → API-ключи', createLabel: 'Создать API-ключ',
+    desktop: ['Откройте JustDoWork и войдите в аккаунт.', 'Создайте API-ключ в разделе «Ключи API».', 'Скопируйте ключ и вставьте его ниже.'],
+    phone: ['Откройте JustDoWork и меню аккаунта.', 'Перейдите в «Ключи API» и создайте ключ.', 'Скопируйте ключ и вернитесь сюда.'],
+    models: [{ label: 'Luna · дешевле всего', value: 'gpt-5.6-luna' }, { label: 'Terra · баланс', value: 'gpt-5.6-terra' }, { label: 'Sol · точнее', value: 'gpt-5.6-sol' }]
+  },
+  {
     id: 'routerai', icon: '◉', name: 'RouterAI', hint: 'Для экономных опытов: Mercury 2.5. Качество типирования проверяем отдельно.',
     keyUrl: 'https://routerai.ru', baseUrl: 'https://routerai.ru/api/v1', model: 'inception/mercury-2.5', placeholder: 'sk-…', accent: '#3865ef',
     screenTitle: 'RouterAI → Ключи', createLabel: 'Создать API-ключ',
