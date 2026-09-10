@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync(new URL('../cloudflare-worker/worker.js',import.meta.url),'utf8');
+const code=source.slice(source.indexOf('async function callTextModel('),source.indexOf('async function transcribeAudio('));
+let sent,finish='stop';
+const context=vm.createContext({AbortController,setTimeout,clearTimeout,console:{log(){},error(){}},Date,parseJsonResponse:p=>JSON.parse(p.choices[0].message.content),fetch:async(_url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({choices:[{finish_reason:finish,message:{content:'{"ok":true}'}}]})}}});
+vm.runInContext(code,context);
+const config={provider:'knyazev',baseUrl:'https://test.invalid',key:'fixture',model:'minimax-2.7'};
+await context.callTextModel(config,'test',null,{});
+assert.equal('max_tokens' in sent,false,'Probe must not impose an output cap');
+await context.callTextModel(config,'test',null,{maxTokens:5200});
+assert.equal(sent.max_tokens,5200,'Explicit synthesis budget remains separate');
+finish='length';
+await assert.rejects(()=>context.callTextModel(config,'test',null,{}),/MODEL_OUTPUT_TRUNCATED/);
+assert.equal(source.includes('maxTokens: 850'),false);
+console.log('PASS: no default probe cap; explicit budget preserved; truncation is not accepted as success');

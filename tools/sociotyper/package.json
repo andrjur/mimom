@@ -8,7 +8,7 @@
     "build": "vite build",
     "start": "vite preview --host 127.0.0.1",
     "preview": "vite preview",
-    "test": "tsx tests/result-regressions.ts",
+    "test": "tsx tests/result-regressions.ts && node tests/output-budget.mjs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {

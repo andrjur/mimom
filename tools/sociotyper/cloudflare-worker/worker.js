@@ -194,7 +194,7 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
         body: JSON.stringify({
-          model, temperature: 0.1, max_tokens: meta.maxTokens || 2400, response_format: { type: 'json_object' },
+          model, temperature: 0.1, ...(meta.maxTokens ? { max_tokens: meta.maxTokens } : {}), response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: 'Return valid JSON only. Be explicit about uncertainty. Never infer facts that are not supported by the supplied material.' },
             { role: 'user', content: prompt }
@@ -204,6 +204,7 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
     }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload?.error?.message || payload?.message || `UPSTREAM_${response.status}`);
+    if (payload?.choices?.[0]?.finish_reason === 'length') throw new Error('MODEL_OUTPUT_TRUNCATED');
     const parsed = parseJsonResponse(payload);
     if (meta.env && meta.jobId) await emitJob(meta.env, meta.jobId, { event: 'model.response', stage: meta.stage, provider: config.provider, model, durationMs: Date.now() - startedAt, usage: payload.usage || null, response: parsed });
     console.log({
@@ -343,14 +344,16 @@ async function runProbeWave(env, providers, probes, source, mixSeed, meta, diagn
     let result;
     let usedModel = model;
     try {
-      result = await callTextModel(provider, probePrompt(source, probe), model, { ...meta(`probe:${probe.id}`), maxTokens: 850, timeoutMs: 45000 });
+      // No app-level output cap for probes. Provider context/output limits still apply.
+      result = await callTextModel(provider, probePrompt(source, probe), model, { ...meta(`probe:${probe.id}`), timeoutMs: 90000 });
     } catch (error) {
-      if (provider.provider !== 'knyazev' || model !== 'kimi-2.6') throw error;
-      usedModel = 'minimax-2.7';
-      await event('waiting', { model: usedModel, note: 'Повтор после ошибки Kimi' });
-      await claimSharedProviderSlot(env, provider, meta(`probe:${probe.id}:kimi-fallback`).traceId);
+      if (provider.provider !== 'knyazev') throw error;
+      // One bounded retry within the inexpensive Gonka pool; never silently buy a premium model.
+      usedModel = model === 'minimax-2.7' ? 'deepseek-v4-flash' : 'minimax-2.7';
+      await event('waiting', { model: usedModel, note: 'Сбой Gonka: одна попытка другой дешёвой моделью' });
+      await claimSharedProviderSlot(env, provider, meta(`probe:${probe.id}:budget-fallback`).traceId);
       await event('running', { model: usedModel });
-      result = await callTextModel(provider, probePrompt(source, probe), usedModel, { ...meta(`probe:${probe.id}:kimi-fallback`), maxTokens: 850, timeoutMs: 45000 });
+      result = await callTextModel(provider, probePrompt(source, probe), usedModel, { ...meta(`probe:${probe.id}:budget-fallback`), timeoutMs: 90000 });
       result.modelFallback = { requested: model, used: usedModel, reason: error instanceof Error ? error.message : String(error) };
     }
     const verified = verifyQuotes(result, source);
