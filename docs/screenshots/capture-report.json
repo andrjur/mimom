@@ -1,0 +1,52 @@
+{
+  "source": "Local preview of repository files, not a screenshot of the public domain",
+  "capturedAt": "2026-09-28T20:53:27.025Z",
+  "pages": [
+    {
+      "route": "/",
+      "width": 1440,
+      "overflow": false,
+      "image": "home-desktop.png"
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "overflow": false,
+      "image": "home-mobile.png"
+    },
+    {
+      "route": "/coaching/",
+      "width": 1440,
+      "overflow": false,
+      "image": "adults-desktop.png"
+    },
+    {
+      "route": "/coaching/",
+      "width": 390,
+      "overflow": false,
+      "image": "adults-mobile.png"
+    },
+    {
+      "route": "/repetitor/",
+      "width": 1440,
+      "overflow": false,
+      "image": "students-desktop.png"
+    },
+    {
+      "route": "/repetitor/",
+      "width": 390,
+      "overflow": false,
+      "image": "students-mobile.png"
+    }
+  ],
+  "live": [
+    {
+      "url": "https://indikov.ru/",
+      "error": "page.goto: Timeout 20000ms exceeded."
+    },
+    {
+      "url": "https://indikov.ru/coaching/",
+      "error": "page.goto: Timeout 20000ms exceeded."
+    }
+  ]
+}
