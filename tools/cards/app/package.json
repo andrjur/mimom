@@ -1,0 +1,33 @@
+{
+  "name": "smart-cards-ai",
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --experimental-strip-types server.ts",
+    "build": "vite build --configLoader native",
+    "start": "node --env-file-if-exists=.env --experimental-strip-types server.ts",
+    "check": "tsc --noEmit",
+    "test": "playwright test",
+    "bot": "node --env-file-if-exists=.env telegram-bot.mjs",
+    "catalog": "node scripts/build-catalog.cjs && node scripts/expand-foundations.cjs && node scripts/expand-ai.cjs && node scripts/split-catalog.cjs"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "lucide-react": "^0.471.0",
+    "motion": "^12.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.7.0",
+    "vite": "^6.0.0"
+  }
+}

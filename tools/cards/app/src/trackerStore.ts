@@ -1,0 +1,10 @@
+export type CellStatus = 'empty' | 'done' | 'partial';
+export interface HabitItem {id:string;name:string;category:string}
+export const HABITS_KEY='repetitor_tracker_habits_v2', CELLS_KEY='repetitor_tracker_cells_v3';
+export const DEFAULT_HABITS:HabitItem[]=[{id:'h1',name:'Зашел сюда',category:'daily'},{id:'h2',name:'Учил карточки',category:'study'},{id:'h3',name:'Оценил 5 карточек',category:'study'},{id:'h4',name:'Создал колоду',category:'study'},{id:'h5',name:'Медитация 40мин',category:'health'},{id:'h6',name:'Был 1 помидор',category:'productivity'},{id:'h7',name:'Кайф',category:'mood'}];
+export const dayKey=(date=new Date())=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+export function readHabits():HabitItem[]{try{return JSON.parse(localStorage.getItem(HABITS_KEY)||'null')||DEFAULT_HABITS;}catch{return DEFAULT_HABITS;}}
+export function readCells():Record<string,CellStatus>{let raw:Record<string,string>={};try{const saved=localStorage.getItem(CELLS_KEY);if(saved)raw=JSON.parse(saved);else {const old=JSON.parse(localStorage.getItem('repetitor_tracker_cells_v2')||'{}');for(const [key,value] of Object.entries(old)){const i=key.lastIndexOf('_'),d=Number(key.slice(i+1)),now=new Date();if(d>=1&&d<=new Date(now.getFullYear(),now.getMonth()+1,0).getDate())raw[key.slice(0,i)+'_'+dayKey(new Date(now.getFullYear(),now.getMonth(),d))]=String(value);}}}catch{}return Object.fromEntries(Object.entries(raw).filter(([,v])=>['done','partial','cyclic','empty'].includes(v)).map(([k,v])=>[k,v==='cyclic'?'partial':v])) as Record<string,CellStatus>;}
+export function markVisit(){if(!readHabits().some(h=>h.id==='h1'))return;const cells=readCells(),key='h1_'+dayKey();if(cells[key]!=='done'){cells[key]='done';localStorage.setItem(CELLS_KEY,JSON.stringify(cells));window.dispatchEvent(new Event('tracker-change'));}}
+export function writeCells(cells:Record<string,CellStatus>){localStorage.setItem(CELLS_KEY,JSON.stringify(cells));window.dispatchEvent(new Event('tracker-change'));}
+export const points=(status:string)=>status==='done'?1:status==='partial'?0.5:0;

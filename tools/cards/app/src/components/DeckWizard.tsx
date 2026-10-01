@@ -1,0 +1,8 @@
+import React,{useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
+export function DeckWizard({topics,counts,current,onClose,onChoose}:{topics:string[];counts:Record<string,number>;current?:string;onClose:()=>void;onChoose:(topic:string)=>void}){
+ const dialog=useRef<HTMLDialogElement>(null),[query,setQuery]=useState('');
+ useEffect(()=>{dialog.current?.showModal();},[]);
+ const visible=topics.filter(t=>t.toLowerCase().includes(query.toLowerCase()));
+ return createPortal(<dialog ref={dialog} onCancel={onClose} aria-label="Мастер выбора колоды" className="m-auto w-[min(640px,95vw)] max-h-[85dvh] overflow-auto rounded-3xl p-6 backdrop:bg-black/40"><div className="flex justify-between gap-3"><h2 className="text-2xl font-bold">Что будем учить?</h2><button aria-label="Закрыть мастер" onClick={onClose}>✕</button></div><p className="text-sm text-zinc-500 my-4">Нажмите на колоду, чтобы сразу начать. Прогресс прежней сохранится.</p><input autoFocus aria-label="Поиск в мастере" placeholder="Предмет или тема" className="border rounded-xl p-3 w-full" value={query} onChange={e=>setQuery(e.target.value)}/><div className="space-y-2 my-4 max-h-[50vh] overflow-auto">{visible.map(t=><button key={t} aria-label={'Учить '+t} onClick={()=>{onChoose(t);onClose();}} className={`block w-full text-left border rounded-xl p-4 hover:bg-emerald-50 hover:border-emerald-500 ${current===t?'border-emerald-600 bg-emerald-50':''}`}><strong>{t}</strong><small className="block text-zinc-500 mt-1">{counts[t]||0} карточек{current===t?' · Сейчас в работе':''}</small></button>)}{!visible.length&&<p>Ничего не найдено. Попробуйте другое название.</p>}</div></dialog>,document.body);
+}

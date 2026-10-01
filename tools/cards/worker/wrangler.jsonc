@@ -1,0 +1,35 @@
+{
+  "name": "indikov-cards-api",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "indikov.ru/api/cards/*",
+      "zone_name": "indikov.ru"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "TRACKER",
+        "class_name": "TrackerStore"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "TrackerStore"
+      ]
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "no_bundle": true
+}
