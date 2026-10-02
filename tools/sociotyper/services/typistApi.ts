@@ -154,8 +154,12 @@ export async function pollAnalysis(id: string, signal?: AbortSignal, onLog?: (en
   while (true) {
     signal?.throwIfAborted();
     let response: Response;
+    let payload: any;
     try {
       response = await fetch(`${DEFAULT_API_BASE}/jobs/${encodeURIComponent(id)}?after=${cursor}`, { credentials: 'include', signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000) });
+      // A timeout can happen after the headers, while the JSON body is loading.
+      // Keep the cursor until the entire response has been received.
+      payload = await response.json();
       networkErrors = 0;
     } catch (error) {
       if (signal?.aborted || ++networkErrors > 5) throw error;
@@ -163,7 +167,6 @@ export async function pollAnalysis(id: string, signal?: AbortSignal, onLog?: (en
       await new Promise(resolve => setTimeout(resolve, 2000));
       continue;
     }
-    const payload = await response.json();
     if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
     for (const entry of payload.events || []) onLog?.(entry);
     cursor = Number(payload.cursor) || cursor;
