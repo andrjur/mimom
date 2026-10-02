@@ -1,0 +1,3 @@
+'use client';
+import {useEffect} from 'react';
+export default function CampaignLinks(){useEffect(()=>{const query=new URLSearchParams(window.location.search);const keys=['utm_source','utm_medium','utm_campaign','utm_content'];if(!keys.some(k=>query.has(k)))return;for(const a of document.querySelectorAll('a[href]')){const raw=a.getAttribute('href');if(!raw?.startsWith('/')||raw.startsWith('//')||a.hasAttribute('download'))continue;const url=new URL(raw,window.location.origin);for(const key of keys){if(query.has(key)&&!url.searchParams.has(key))url.searchParams.set(key,query.get(key).slice(0,100));}a.setAttribute('href',url.pathname+url.search+url.hash);}},[]);return null;}

@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import {spawnSync} from 'node:child_process';
+import {routeStaticAssets} from './cdn.mjs';
+const source=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const repo=path.resolve(source,'../..');
+const deps=process.env.MARKETING_DEPS || path.join(source,'node_modules');
+const require=createRequire(path.join(deps,'../package.json'));
+const esbuild=require(path.join(deps,'esbuild'));
+await esbuild.build({entryPoints:[path.join(source,'scripts/render.jsx')],bundle:true,platform:'node',format:'cjs',outfile:path.join(source,'.render.cjs'),nodePaths:[deps],loader:{'.js':'jsx'},jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'}});
+const result=spawnSync(process.execPath,[path.join(source,'.render.cjs'),repo],{stdio:'inherit'});
+fs.rmSync(path.join(source,'.render.cjs'));
+if(result.status)process.exit(result.status);
+routeStaticAssets(repo,JSON.parse(fs.readFileSync(path.join(source,'cdn.json'),'utf8')).staticCommit);
