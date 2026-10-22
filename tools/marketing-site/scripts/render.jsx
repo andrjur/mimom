@@ -13,7 +13,7 @@ function save(slug,element,title,description){
  const dir=slug?path.join(root,slug):root;fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'index.html'),html.replaceAll(String.fromCharCode(8212),'-'));
 }
 async function main(){
-save('',<Home/>,'Андрей Индыков | Типология, продуктивность и обучение ИИ','Программы и практики для взрослых: типология, личное сопровождение, самоаудит и ИИ на рабочих задачах.');
+save('',<Home/>,'Инструменты для жизни | Андрей Индыков','Практики для действий, общения, обучения и работы с ИИ. Выберите упражнение под свою задачу или обсудите персональный подбор с Андреем Индыковым.');
 for(const slug of Object.keys(pages)){if(slug==='articles')continue;save(slug,await Route({params:{slug}}),pages[slug].title+' | Андрей Индыков',pages[slug].lead);}
 fs.mkdirSync(path.join(root,'assets'),{recursive:true});fs.copyFileSync(path.join(source,'app/style.css'),path.join(root,'assets/marketing.css'));
 fs.copyFileSync(path.join(source,'public/marketing.js'),path.join(root,'assets/marketing.js'));

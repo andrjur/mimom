@@ -1,19 +1,25 @@
 <!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if page.title %}{{ page.title }} — {% endif %}Андрей Индыков</title>
-  <meta name="description" content="{{ page.description | default: site.description | escape }}">
-  <meta name="theme-color" content="#10213d">
-  <link rel="icon" href="https://cdn.jsdelivr.net/gh/andrjur/mimom@a808e7586e5050270dcff2d3f1952a8560be70ef/assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/andrjur/mimom@a808e7586e5050270dcff2d3f1952a8560be70ef/assets/site.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/andrjur/mimom@a808e7586e5050270dcff2d3f1952a8560be70ef/assets/articles.css">
-  <script defer src="https://cdn.jsdelivr.net/gh/andrjur/mimom@a808e7586e5050270dcff2d3f1952a8560be70ef/assets/article-tests.js"></script>
-</head>
-<body>
-  {% include site-nav.html %}
-  {{ content }}
-  <footer class="footer"><div class="container footer__grid"><div><strong>Андрей Индыков</strong><p>Сложное — в понятную систему.</p></div><nav><a href="/">Главная</a><a href="/typolog/">Типолог</a><a href="/articles/">Статьи</a><a href="/repetitor/">Репетитор</a></nav><p class="footer__note">Образовательные материалы не заменяют медицинскую или психотерапевтическую помощь.</p></div></footer>
-</body>
-</html>
+<html lang="ru"><head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>{% if page.title %}{{ page.title | escape }} | {% endif %}Андрей Индыков</title>
+ <meta name="description" content="{{ page.description | default: site.description | escape }}">
+ <link rel="canonical" href="{{ page.url | absolute_url }}">
+ <meta property="og:title" content="{{ page.title | default: site.title | escape }}">
+ <meta property="og:description" content="{{ page.description | default: site.description | escape }}">
+ <meta property="og:url" content="{{ page.url | absolute_url }}">
+ <meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
+ {% if page.image %}<meta property="og:image" content="{{ page.image | absolute_url }}"><meta property="og:image:alt" content="{{ page.image_alt | default: page.title | escape }}">{% endif %}
+ <meta name="twitter:card" content="summary_large_image">
+ <meta name="theme-color" content="#7758ff">
+ <link rel="icon" href="https://cdn.jsdelivr.net/gh/andrjur/mimom@{{ site.static_commit }}/favicon.svg" type="image/svg+xml">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/andrjur/mimom@{{ site.static_commit }}/assets/marketing.css">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/andrjur/mimom@{{ site.static_commit }}/assets/articles.css">
+ <script defer src="https://cdn.jsdelivr.net/gh/andrjur/mimom@{{ site.static_commit }}/assets/marketing.js"></script>
+ <script defer src="https://cdn.jsdelivr.net/gh/andrjur/mimom@{{ site.static_commit }}/assets/article-tests.js"></script>
+ <script defer src="https://cdn.jsdelivr.net/gh/andrjur/mimom@{{ site.static_commit }}/assets/life-tools.js"></script>
+</head><body><a class="skip-link" href="#main-content">К содержанию</a>
+ {% include site-nav.html %}
+ {{ content }}
+ <footer class="siteFooter"><a class="brand" href="/">Андрей Индыков · Инструменты для жизни</a><div class="footerMap"><a href="/catalog/">Инструменты</a><a href="/articles/">Разборы</a><a href="/coaching/">Личная работа</a><a href="/about/">Об Андрее</a><a href="/method/">Подход</a></div><div><a href="https://vk.ru/andrupsy">VK</a><a href="https://t.me/andreyjurievich">Telegram</a></div></footer>
+ <div class="footerNote">Самостоятельные упражнения, индивидуальное сопровождение и обучение. Материалы не заменяют медицинскую помощь или психотерапию.</div>
+</body></html>

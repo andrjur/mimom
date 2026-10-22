@@ -1,25 +1,11 @@
 ---
 layout: default
 ---
-<main class="post">
-  <header class="post__hero">
-    <div class="post__narrow">
-      <a class="post__back" href="/articles/">← Все статьи</a>
-      <p class="kicker kicker--light">{{ page.category | default: "Статья" }}</p>
-      <h1>{{ page.title }}</h1>
-      {% if page.description %}<p class="post__lead">{{ page.description }}</p>{% endif %}
-      <p class="post__meta">{{ page.date | date: "%d.%m.%Y" }} · Андрей Индыков</p>
-    </div>
-  </header>
-  <article class="post__body post__narrow">
-    {% if page.image %}
-    <figure class="post__cover">
-      <img src="{{ page.image }}" alt="{{ page.image_alt | default: page.title }}" width="1600" height="1066">
-      {% if page.image_caption %}<figcaption>{{ page.image_caption }}</figcaption>{% endif %}
-    </figure>
-    {% endif %}
-    {{ content }}
-    <aside class="post__cta"><p class="kicker">От чтения к действию</p><h2>Нужна поддержка на пути?</h2><p>Взрослым: сопровождение изменений в жизни. Школьникам: понимание материала и подготовка к экзаменам.</p><div class="actions"><a class="button button--ink" href="/coaching/">Сопровождение взрослых</a><a class="button button--gold" href="/repetitor/">Учёба и ЕГЭ</a></div></aside>
-  </article>
-</main>
-
+<main class="post" id="main-content">
+ <header class="post__hero"><div class="post__narrow"><a class="post__back" href="/articles/">← Все разборы</a><p class="overline">{{ page.category | default: "Разбор" }}</p><h1>{{ page.title }}</h1>{% if page.description %}<p class="post__lead">{{ page.description }}</p>{% endif %}<p class="post__meta">{{ page.date | date: "%d.%m.%Y" }} · Андрей Индыков{% if page.reading_time %} · {{ page.reading_time }} мин чтения{% endif %}</p>{% if page.practice_fields %}<a class="btn primary" href="#practice">Сразу к упражнению ↓</a>{% endif %}</div></header>
+ <article class="post__body post__narrow">
+ {% if page.image %}<figure class="post__cover"><img src="{{ page.image }}" alt="{{ page.image_alt | default: page.title }}" width="1200" height="630" decoding="async">{% if page.image_caption %}<figcaption>{{ page.image_caption }}</figcaption>{% endif %}</figure>{% endif %}
+ {{ content }}
+ {% if page.practice_fields %}<section class="practice" id="practice" aria-labelledby="practice-title"><p class="overline">ВАШ ПЕРВЫЙ ИНСТРУМЕНТ</p><h2 id="practice-title">{{ page.practice_title }}</h2><p>{{ page.practice_hint }}</p><noscript><p>Запишите ответы на вопросы упражнения на бумаге. Для карточки в браузере нужен JavaScript.</p></noscript><form data-practice hidden data-title="{{ page.practice_title | escape }}">{% for label in page.practice_fields %}<label for="note-{{ forloop.index }}">{{ label }}</label><textarea id="note-{{ forloop.index }}" name="note-{{ forloop.index }}" rows="3" maxlength="1500" required></textarea>{% endfor %}<p class="practice__privacy">Можно записать на бумаге. Ответы остаются в этой вкладке, не отправляются и не сохраняются сайтом.</p><button class="btn primary" type="submit">Собрать мою карточку</button></form><section data-practice-output hidden aria-label="Ваша карточка"><h3>Карточка готова</h3><label for="practice-result">Проверьте и при необходимости отредактируйте</label><textarea id="practice-result" rows="10"></textarea><div class="routeActions"><button class="btn primary" type="button" data-practice-download>Скачать карточку .txt</button><button class="btn line" type="button" data-practice-copy>Скопировать</button><button class="btn line" type="button" data-practice-clear>Очистить ответы</button></div><p data-practice-status role="status"></p></section></section>{% endif %}
+ <aside class="post__cta"><p class="overline">СЛЕДУЮЩИЙ ШАГ</p><h2>{{ page.cta_title | default: "Подберём инструмент под вашу задачу" }}</h2><p>{{ page.cta_text | default: "Опишите одну ситуацию. Обсудим, что можно попробовать самостоятельно и в чём пригодится личная работа." }}</p><div class="routeActions"><a class="btn primary" href="{{ page.cta_url | default: '/apply/?track=tool-selection' }}">{{ page.cta_label | default: "Разобрать задачу со мной" }}</a>{% if page.tool_url %}<a class="btn line" href="{{ page.tool_url }}">{{ page.tool_label }}</a>{% endif %}</div><p class="practice__privacy">Формат и стоимость личной работы согласуем до оплаты. Упражнение выше доступно без обращения.</p></aside>
+ </article></main>

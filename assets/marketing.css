@@ -34,3 +34,6 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}.neuralOutro img{display:none}}
 
 body [hidden]{display:none!important}.homeAudience{max-width:650px;color:#53616a;font-size:14px;line-height:1.7}.detailBlocks{scroll-margin-top:100px}.siteFooter .footerMap{flex-wrap:wrap}a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #b0642c;outline-offset:4px}
+
+/* Life tools: clear task selection and accessible reading. */
+.taskGrid .routeCards{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:28px}.taskGrid .routeCard{min-height:280px}.homeSectionHead>p:not(.overline){max-width:760px;line-height:1.8;color:#4f5254}.lightCopy{max-width:900px;color:#d5d0e6;line-height:1.9;margin:30px 0 22px}.homeIdentity img{height:auto;aspect-ratio:1;object-fit:cover}.homeHero h1{font-size:clamp(35px,4.7vw,68px)}.shortRequest{padding:20px;border-left:4px solid var(--violet);background:#fff;line-height:1.8}.homePage .homeDark .routeCard p{color:#424549}.materialComment{margin-top:16px}@media(max-width:650px){.taskGrid .routeCards{grid-template-columns:1fr}.homeHero h1{font-size:clamp(32px,8.5vw,45px)}.taskGrid .routeCard{min-height:240px}}
