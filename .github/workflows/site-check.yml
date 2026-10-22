@@ -1,5 +1,6 @@
 name: Website and funnel checks
 on:
+  workflow_dispatch:
   push:
     paths: ['_posts/**', '_layouts/**', '_includes/**', 'articles/**', 'family-experiments/**', 'assets/**', 'tools/marketing-site/**', '_config.yml', 'index.html', '.github/workflows/site-check.yml']
   pull_request:
