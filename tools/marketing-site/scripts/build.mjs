@@ -9,6 +9,8 @@ const repo=path.resolve(source,'../..');
 const deps=process.env.MARKETING_DEPS || path.join(source,'node_modules');
 const require=createRequire(path.join(deps,'../package.json'));
 const esbuild=require(path.join(deps,'esbuild'));
+const diagrams=spawnSync(process.execPath,[path.join(source,'scripts/family-diagrams.mjs')],{stdio:'inherit'});
+if(diagrams.status)process.exit(diagrams.status);
 await esbuild.build({entryPoints:[path.join(source,'scripts/render.jsx')],bundle:true,platform:'node',format:'cjs',outfile:path.join(source,'.render.cjs'),nodePaths:[deps],loader:{'.js':'jsx'},jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'}});
 const result=spawnSync(process.execPath,[path.join(source,'.render.cjs'),repo],{stdio:'inherit'});
 fs.rmSync(path.join(source,'.render.cjs'));

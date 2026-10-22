@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {fileURLToPath} from 'node:url';
+const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
+const built=process.argv.indexOf('--built');const root=built<0?repo:path.resolve(repo,process.argv[built+1]);
+const data=JSON.parse(fs.readFileSync(path.join(repo,'tools/marketing-site/content/family-experiments.json'),'utf8'));
+const html=fs.readFileSync(path.join(root,'family-experiments/index.html'),'utf8');
+assert.equal(data.length,30);assert.equal(new Set(data.map(e=>e.id)).size,30);
+for(const tier of [1,2,3])assert.equal(data.filter(e=>e.tier===tier).length,10);
+assert.equal((html.match(/data-experiment=""/g)||[]).length,30);
+assert.equal((html.match(/class="exSpoiler"/g)||[]).length,30);
+assert.ok(!/<details class="exSpoiler"[^>]*\bopen\b/.test(html));
+assert.ok(html.includes('https://indikov.ru/family-experiments/')&&html.includes('data-family-filters="" hidden=""'));
+for(const e of data){assert.equal(e.steps.length,4);assert.equal(e.flow.length,4);assert.equal(e.map.length,4);assert.equal(e.questions.length,2);for(const key of ['goal','materials','example','answer','family','work','transfer'])assert.ok(e[key]?.length>5,e.id+' missing '+key);assert.ok(html.includes('id="'+e.id+'"')&&html.includes(e.title));for(const kind of ['route','map']){const base='assets/family-experiments/'+e.id+'-'+kind;assert.ok(html.includes(base+'.svg'));const svg=fs.readFileSync(path.join(root,base+'.svg'),'utf8');assert.ok(svg.includes('<title')&&svg.includes('<desc')&&svg.includes('viewBox="0 0 400 480"'));const source=JSON.parse(fs.readFileSync(path.join(root,base+'.excalidraw'),'utf8'));assert.equal(source.type,'excalidraw');assert.equal(new Set(source.elements.map(x=>x.id)).size,source.elements.length);assert.equal(source.elements.filter(x=>x.customData?.role==='node').length,4);for(const x of source.elements){assert.ok(x.width>=0&&x.height>=0);assert.ok(x.x>=0&&x.y>=0&&x.x+x.width<=400&&x.y+x.height<=480,'Outside drawing: '+base);if(x.containerId){const parent=source.elements.find(y=>y.id===x.containerId);assert.ok(parent?.boundElements.some(b=>b.id===x.id));assert.ok(x.y>=parent.y&&x.y+x.height<=parent.y+parent.height,'Clipped text '+base);}}}}
+for(const p of ['assets/family.js','assets/family.css','family-experiments/index.html','tools/marketing-site/content/family-experiments.json'])assert.ok(!fs.readFileSync(path.join(p.startsWith('tools/')?repo:root,p),'utf8').includes(String.fromCharCode(8212)),'Forbidden punctuation: '+p);
+new vm.Script(fs.readFileSync(path.join(root,'assets/family.js'),'utf8'));
+for(const p of ['index.html','catalog/index.html'])assert.ok(fs.readFileSync(path.join(root,p),'utf8').includes('href="/family-experiments/"'));
+console.log('Passed: 30 games, 3 balanced tiers, 60 accessible SVGs, 60 valid editable drawings, closed answer spoilers, metadata and discovery links.');
