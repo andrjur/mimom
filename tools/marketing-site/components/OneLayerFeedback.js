@@ -5,7 +5,7 @@ export default function OneLayerFeedback() {
   return <section className="layerFeedback" id="feedback" aria-labelledby="feedback-title">
     <div className="feedbackIntro">
       <p className="overline">ПОПРОБОВАЛИ? РАССКАЖИТЕ, КАК ЭТО БЫЛО</p>
-      <h2 id="feedback-title">Можно возвращаться.<br/>И каждый раз замечать своё.</h2>
+      <h2 id="feedback-title">Можно повторять.<br/>Можно рассказать.</h2>
       <p>Практику можно делать бесплатно сколько угодно раз. Если пользуетесь без доната, моя просьба: оставьте честный отзыв. Даже если ничего не изменилось или что-то не подошло.</p>
       <p>Поддержка добровольная. Положительный отзыв не является условием доступа.</p>
       <ol className="feedbackSteps"><li>Заполните короткую форму.</li><li>Проверьте текст и откройте личный чат с Андреем.</li><li>Нажмите «Отправить» в Telegram.</li></ol>
@@ -21,7 +21,7 @@ export default function OneLayerFeedback() {
         <label htmlFor="feedback-result">После практики</label>
         <select id="feedback-result" name="result" required defaultValue=""><option value="" disabled>Выберите свой вариант</option><option>Стало немного яснее</option><option>Стало спокойнее</option><option>Пока без изменений</option><option>Не подошло</option><option>Другое</option></select>
         <label htmlFor="feedback-text">Что заметили? <span>Обязательно, от 10 символов</span></label>
-        <textarea id="feedback-text" name="text" required minLength="10" maxLength="1200" rows="5" placeholder="С чем начали, что заметили после? Что было полезно, непонятно или не подошло?" aria-describedby="feedback-private-hint"/>
+        <textarea id="feedback-text" name="text" required minLength="10" maxLength="800" rows="5" placeholder="С чем начали, что заметили после? Что было полезно, непонятно или не подошло?" aria-describedby="feedback-private-hint"/>
         <p className="feedbackHint" id="feedback-private-hint">Не указывайте диагнозы, чужие имена и подробности, которыми не готовы делиться. Не нужно присылать личные заметки из упражнения.</p>
         <label className="feedbackCheck"><input type="checkbox" name="publish"/><span>Разрешаю Андрею опубликовать этот текст на indikov.ru после проверки, с указанным именем или анонимно. Это необязательно.</span></label>
         <p className="feedbackHint">Если не поставить галочку, отзыв только для личного чтения. Можно написать Андрею об отзыве и попросить не публиковать или убрать уже опубликованный текст.</p>
