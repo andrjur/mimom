@@ -7,5 +7,9 @@
   "fundraiseUrl": "https://yoomoney.ru/fundraise/1L3E1QHPM89.261023",
   "helpUrl": "https://yoomoney.ru/document/cherez-sbp-v-prilojenii-drugogo-banka",
   "videoId": "XIzlLJax3gs",
-  "videoUrl": "https://youtu.be/XIzlLJax3gs"
+  "videoUrl": "https://youtu.be/XIzlLJax3gs",
+  "audioUrl": "/assets/audio/one-layer.m4a",
+  "audioBytes": 25638965,
+  "audioDurationSeconds": 1043.667302,
+  "audioSha256": "7252cad5f0a05caac74cc606d9d869b1dfd5a946b7bd668b789dd9017cc3c67e"
 }
