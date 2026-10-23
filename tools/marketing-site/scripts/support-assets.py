@@ -18,3 +18,16 @@ badge=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="
 (out/'donation-card.svg').write_text(badge,encoding='utf-8',newline='\n')
 assert qr.data_list[0].data.decode()==config['billUrl']
 print('Generated vector support card and QR for the exact supplied bill URL.')
+for filename,url,title in [
+    ('one-layer-qr',config['practiceUrl'],'Открыть бесплатную практику «Один слой»'),
+    ('yoomoney-any-qr',config['transferUrl'],'Открыть ЮMoney для добровольной поддержки')
+]:
+    item=qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M,box_size=12,border=4)
+    item.add_data(url);item.make(fit=True)
+    pixels=item.get_matrix();edge=len(pixels)
+    data=''.join(f'M{x} {y}h1v1h-1z' for y,row in enumerate(pixels) for x,on in enumerate(row) if on)
+    vector=f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {edge} {edge}" width="512" height="512" role="img" aria-labelledby="title"><title id="title">{escape(title)}</title><metadata>{escape(url)}</metadata><rect width="{edge}" height="{edge}" fill="#fff"/><path d="{data}" fill="#000" shape-rendering="crispEdges"/></svg>'
+    (out/(filename+'.svg')).write_text(vector,encoding='utf-8',newline='\n')
+    item.make_image(fill_color='black',back_color='white').save(out/(filename+'.png'))
+    assert item.data_list[0].data.decode()==url
+print('Generated separate practice and support QR codes with a four-module quiet zone.')
