@@ -2,9 +2,9 @@ name: Website and funnel checks
 on:
   workflow_dispatch:
   push:
-    paths: ['_posts/**', '_layouts/**', '_includes/**', 'articles/**', 'family-experiments/**', 'assets/**', 'tools/marketing-site/**', '_config.yml', 'index.html', '.github/workflows/site-check.yml']
+    paths: ['_posts/**', '_layouts/**', '_includes/**', 'articles/**', 'family-experiments/**', 'one-layer/**', 'assets/**', 'tools/marketing-site/**', '_config.yml', 'index.html', '.github/workflows/site-check.yml']
   pull_request:
-    paths: ['_posts/**', '_layouts/**', '_includes/**', 'articles/**', 'family-experiments/**', 'assets/**', 'tools/marketing-site/**', '_config.yml', 'index.html', '.github/workflows/site-check.yml']
+    paths: ['_posts/**', '_layouts/**', '_includes/**', 'articles/**', 'family-experiments/**', 'one-layer/**', 'assets/**', 'tools/marketing-site/**', '_config.yml', 'index.html', '.github/workflows/site-check.yml']
 permissions:
   contents: read
 jobs:
@@ -21,9 +21,11 @@ jobs:
         working-directory: tools/marketing-site
       - run: node tools/marketing-site/scripts/check-site.mjs
       - run: node tools/marketing-site/scripts/check-family.mjs
+      - run: node tools/marketing-site/scripts/check-support.mjs
       - uses: actions/jekyll-build-pages@v1
         with:
           source: ./
           destination: ./_site
       - run: node tools/marketing-site/scripts/check-site.mjs --built _site
       - run: node tools/marketing-site/scripts/check-family.mjs --built _site
+      - run: node tools/marketing-site/scripts/check-support.mjs --built _site

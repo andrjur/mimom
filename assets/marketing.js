@@ -15,7 +15,7 @@
  if([...select.options].some(o=>o.value===query.get('track')))select.value=query.get('track');
  const materials=new Set(['one-layer','book','9-sfer-material']);
  const box=document.querySelector('[data-draft-box]');
- function configure(){const short=materials.has(select.value);form.querySelector('[data-material-fields]').hidden=!short;form.querySelector('[data-personal-fields]').hidden=short;for(const name of ['task','result','tried','time']){const field=form.elements.namedItem(name);field.disabled=short;field.required=!short&&['task','result'].includes(name);field.setCustomValidity('');}box.hidden=true;}
+ function configure(){const short=materials.has(select.value);const openPractice=document.querySelector('[data-open-practice]');if(openPractice)openPractice.hidden=select.value!=='one-layer';form.querySelector('[data-material-fields]').hidden=!short;form.querySelector('[data-personal-fields]').hidden=short;for(const name of ['task','result','tried','time']){const field=form.elements.namedItem(name);field.disabled=short;field.required=!short&&['task','result'].includes(name);field.setCustomValidity('');}box.hidden=true;}
  configure();select.addEventListener('change',configure);
  const tg=document.querySelector('[data-telegram]');
  const draft=document.getElementById('draft');
@@ -25,7 +25,7 @@
   if(!short)for(const name of ['task','result']){const field=form.elements.namedItem(name);field.setCustomValidity(field.value.trim()?'':'Пожалуйста, напишите ответ.');if(!field.reportValidity())return;}
   const values=new FormData(form);const value=k=>String(values.get(k)||'').trim();
   const source=keys.filter(k=>query.has(k)).map(k=>k+': '+query.get(k).slice(0,100)).join('\n');
-  const details=short?'\nПодскажите наличие, способ оплаты и получения.'+(value('comment')?'\nКомментарий: '+value('comment'):''):'\n\nМоя задача: '+value('task')+'\nЖелаемое изменение: '+value('result')+'\nЧто уже пробовал(а): '+(value('tried')||'Пока не указано')+'\nДоступное время: '+(value('time')||'Хочу обсудить');
+  const details=short?(select.value==='one-layer'?'\nХочу задать вопрос по открытой практике.':'\nПодскажите наличие, способ оплаты и получения.')+(value('comment')?'\nКомментарий: '+value('comment'):''):'\n\nМоя задача: '+value('task')+'\nЖелаемое изменение: '+value('result')+'\nЧто уже пробовал(а): '+(value('tried')||'Пока не указано')+'\nДоступное время: '+(value('time')||'Хочу обсудить');
   draft.value='Андрей, здравствуйте!\nИнтересует: '+select.selectedOptions[0].text+'.'+details+(source?'\n\nИсточник обращения:\n'+source:'');
   box.hidden=false;updateTelegram();draft.focus();document.querySelector('[data-copy-status]').textContent='Проверьте текст перед отправкой.';
  });
