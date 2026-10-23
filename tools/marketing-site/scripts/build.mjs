@@ -3,7 +3,7 @@ import path from 'node:path';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {routeStaticAssets} from './cdn.mjs';
+import {routeStaticAssets,routeOneLayerAssets} from './cdn.mjs';
 const source=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const repo=path.resolve(source,'../..');
 const deps=process.env.MARKETING_DEPS || path.join(source,'node_modules');
@@ -15,4 +15,6 @@ await esbuild.build({entryPoints:[path.join(source,'scripts/render.jsx')],bundle
 const result=spawnSync(process.execPath,[path.join(source,'.render.cjs'),repo],{stdio:'inherit'});
 fs.rmSync(path.join(source,'.render.cjs'));
 if(result.status)process.exit(result.status);
-routeStaticAssets(repo,JSON.parse(fs.readFileSync(path.join(source,'cdn.json'),'utf8')).staticCommit);
+const cdnConfig=JSON.parse(fs.readFileSync(path.join(source,'cdn.json'),'utf8'));
+routeStaticAssets(repo,cdnConfig.staticCommit);
+routeOneLayerAssets(repo,cdnConfig.oneLayerCommit||cdnConfig.staticCommit);
