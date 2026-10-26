@@ -60,6 +60,9 @@ export interface TypistResult {
   stages: PipelineStage[];
   createdAt: string;
   providerUsed?: string;
+  nextQuestions?: string[];
+  observations?: Array<{ quote: string; observation: string }>;
+  scoring?: { version: string; coverage: number; margin: number; resolved: boolean; metric: string; ranked: Array<{ abbreviation: string; name: string; score: number }> };
   randomFallback?: boolean;
   debugTraceId?: string;
   probeResults?: ProbeResult[];
@@ -96,9 +99,10 @@ export interface PersonSession {
   eventCursor?: number;
   analysisStartedAt?: number;
   liveStages?: PipelineStage[];
+  followUpQuestions?: string[];
 }
 
-export type ProviderId = 'knyazev' | 'just' | 'routerai' | 'gemini' | 'openai' | 'anthropic' | 'openrouter' | 'custom';
+export type ProviderId = 'dewiar' | 'polza' | 'vsegpt' | 'knyazev' | 'just' | 'routerai' | 'gemini' | 'openai' | 'anthropic' | 'openrouter' | 'custom';
 export type ConnectionPolicy = 'always' | 'random' | 'off' | 'system';
 
 export interface ApiConnection {

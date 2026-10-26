@@ -15,7 +15,7 @@ import { LogConsole } from './TypistDiagnostics';
 import { DEFAULT_PERSONA, PersonaStudio } from './PersonaStudio';
 import { prepareAudio } from '../services/audioPreparation';
 
-const FALLBACK_AFTER_MS = 210000;
+const FALLBACK_AFTER_MS = 60000;
 
 const stableModelIndex = (seed: string, probeId: string, length: number) => {
   let hash = 2166136261;
@@ -29,6 +29,9 @@ const DEFAULT_BYOK: ByokSettings = {
 };
 
 const BYOK_DEFAULTS: Record<Exclude<ByokSettings['provider'], 'custom'>, Pick<ByokSettings, 'baseUrl' | 'model'>> = {
+  dewiar: { baseUrl: 'https://dewiar.com/API/api', model: 'google/gemini-flash-latest' },
+  polza: { baseUrl: 'https://polza.ai/api/v1', model: 'google/gemini-2.5-flash' },
+  vsegpt: { baseUrl: 'https://api.vsegpt.ru/v1', model: 'openai/gpt-4o-mini' },
   just: { baseUrl: 'https://api.justwoker.icu/v1', model: 'gpt-5.6-luna' },
   routerai: { baseUrl: 'https://routerai.ru/api/v1', model: 'inception/mercury-2.5' },
   knyazev: { baseUrl: 'https://knyazevai.work/v1', model: 'minimax-2.7' },
@@ -63,7 +66,7 @@ const makeConnection = (settings: ByokSettings, checkedModel?: string): ApiConne
   baseUrl: settings.baseUrl,
   model: checkedModel || settings.model,
   policy: 'system',
-  omniCapable: /(?:gemini|gpt-4o-audio|omni)/i.test(checkedModel || settings.model),
+  omniCapable: !['dewiar', 'polza', 'vsegpt'].includes(settings.provider) && /(?:gemini|gpt-4o-audio|omni)/i.test(checkedModel || settings.model),
   effort: settings.effort
 });
 
@@ -241,10 +244,10 @@ const QuickApiConnect: React.FC<{
   };
 
   return <section className={`tw-quick-api ${status}`}>
-    <div className="tw-quick-api-copy"><KeyRound size={20} /><div><span className="tw-kicker">Свой API · без лимита сайта</span><b>Вставьте ключ прямо здесь</b><small>Для друзей: Knyazev AI, Gemini, OpenAI, Claude, OpenRouter или другой совместимый API.</small></div></div>
+    <div className="tw-quick-api-copy"><KeyRound size={20} /><div><span className="tw-kicker">Свой API · без лимита сайта</span><b>Вставьте ключ прямо здесь</b><small>Подойдут Dewiar, Polza.ai, VseGPT и другие сервисы. Ключ передаётся серверу по защищённому соединению.</small></div></div>
     <div className="tw-quick-api-controls">
       <select value={provider} onChange={event => { setProvider(event.target.value as ByokSettings['provider']); setStatus('idle'); }} aria-label="Провайдер API">
-        <option value="knyazev">Knyazev AI / Gonka</option><option value="just">JustDoWork · Luna / Terra / Sol</option><option value="routerai">RouterAI · Mercury 2.5 · экономно</option><option value="gemini">Google Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic Claude</option><option value="openrouter">OpenRouter</option><option value="custom">Другой API</option>
+        <option value="dewiar">Dewiar</option><option value="polza">Polza.ai</option><option value="vsegpt">VseGPT</option><option value="knyazev">Knyazev AI / Gonka</option><option value="just">JustDoWork · Luna / Terra / Sol</option><option value="routerai">RouterAI · Mercury 2.5 · экономно</option><option value="gemini">Google Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic Claude</option><option value="openrouter">OpenRouter</option><option value="custom">Другой API</option>
       </select>
       <div className="tw-quick-api-key"><input type="password" autoComplete="off" value={key} onChange={event => { setKey(event.target.value); setStatus('idle'); }} placeholder={provider === 'knyazev' ? 'kn_live_…' : 'Вставьте API-ключ'} /><button onClick={connect} disabled={!key.trim() || status === 'checking'}>{status === 'checking' ? <LoaderCircle size={17} className="tw-spin" /> : 'Подключить'}</button></div>
       <button className="tw-quick-api-more" onClick={onAdvanced}>Скриншоты и другие настройки</button>
@@ -273,14 +276,14 @@ const WaitingCard: React.FC<{ session: PersonSession; onCancel: () => void; tran
   const percent = Math.round((done + failed + (final?.status === 'done' ? 1 : 0)) / 25 * 100);
   const models = [...new Set(stages.map(stage => stage.model).filter(Boolean))];
   return <div className="tw-waiting">
-    <div className="tw-waiting-top"><div><span className="tw-kicker">ИИ работает</span><h3>{session.name} · {done}/24 ответов</h3></div><span><Clock3 size={17} /> {seconds} сек.</span></div>
+    <div className="tw-waiting-top"><div><span className="tw-kicker">ИИ работает</span><h3>{session.name} · {done}/24 проверок</h3></div><span><Clock3 size={17} /> {seconds} сек.</span></div>
     <div className="tw-transfer-progress"><div><span>{transferProgress < 100 ? 'Подготовка аудиофайлов' : session.jobId ? 'Задание принято сервером' : 'Отправка и проверка материалов'}</span><b>{transferProgress}%</b></div><progress max="100" value={transferProgress} /></div>
-    <div className="tw-analysis-meter"><div><span>Обработано этапов{failed ? ' · ошибок: ' + failed : ''}</span><b>{percent}%</b></div><progress max="100" value={percent} /><small>24 проверки + синтез. Процент меняется только по событиям сервера.</small></div>
+    <div className="tw-analysis-meter"><div><span>Обработано этапов{failed ? ' · ошибок: ' + failed : ''}</span><b>{percent}%</b></div><progress max="100" value={percent} /><small>24 признака проверяются группами. Прогресс отражает полученные ответы, а не время до завершения.</small></div>
     {session.error && <div className="tw-inline-warning">{session.error}</div>}
     <div className="tw-model-mix">{models.map(model => <span key={model}><b>{model}</b><small>{stages.filter(stage => stage.model === model).length} проверок</small></span>)}</div>
     <AnalysisPipeline stages={stages} compact />
     <AnalysisPipeline stages={[final || { id: 'final', label: 'Синтез и критик', status: 'waiting', note: 'Ожидает ответы проверок' }]} />
-    <p>Можно обновить страницу: задание и его результаты доступны в этом браузере в течение суток. Через 3:30 откроется предварительная справочная версия, если ИИ ещё работает.</p>
+    <p>Можно обновить страницу: задание и его результаты доступны в этом браузере в течение суток. Через минуту появятся локальные наблюдения, если ИИ ещё работает.</p>
     <WisdomScroll compact index={wisdomIndex} onIndex={setWisdomIndex} />
     <LogConsole logs={session.clientLogs} name={session.name} />
     <button className="tw-cancel-analysis" onClick={onCancel}><Square size={15} /> Остановить анализ</button>
@@ -297,7 +300,7 @@ const pairData = (a: ReadySession, b: ReadySession) => {
 };
 
 const MatchPanel: React.FC<{ sessions: PersonSession[] }> = ({ sessions }) => {
-  const ready = sessions.filter(item => item.result && !item.result.randomFallback) as ReadySession[];
+  const ready = sessions.filter(item => item.result && !item.result.randomFallback && item.result.confidenceLevel !== 'insufficient') as ReadySession[];
   const [selectedA, setSelectedA] = useState('');
   const [selectedB, setSelectedB] = useState('');
   if (ready.length < 2) return null;
@@ -523,7 +526,7 @@ export const TypistWorkbench: React.FC = () => {
 
   const restart = async (session: PersonSession) => {
     if (backgroundAi[session.id] && !await cancelAnalysis(session)) return;
-    update(session.id, { status: 'draft', result: null, localResult: null, aiResult: null, error: undefined, jobId: undefined, liveStages: [], analysisStartedAt: undefined });
+    update(session.id, { status: 'draft', followUpQuestions: session.result?.nextQuestions, result: null, localResult: null, aiResult: null, error: undefined, jobId: undefined, liveStages: [], analysisStartedAt: undefined });
   };
 
   const addPerson = () => {
@@ -558,7 +561,7 @@ export const TypistWorkbench: React.FC = () => {
   if (restoring) return <div className="tw-app"><main className="tw-main"><p role="status">Восстанавливаем ваши материалы…</p></main></div>;
   return <div className="tw-app">
     <header className="tw-header">
-      <a href="https://indikov.ru/typolog/" className="tw-wordmark" aria-label="Андрей Индыков — Indikov.ru">
+      <a href="https://indikov.ru/typolog/" className="tw-wordmark" aria-label="Андрей Индыков , Indikov.ru">
         <span className="tw-wordmark-name"><b>A.</b><span><i>И</i>ндыков</span></span>
         <span className="tw-wordmark-url"><b>A.</b><u><span><i>I</i>ndikov</span><small>.ru</small></u></span>
       </a>
@@ -576,7 +579,7 @@ export const TypistWorkbench: React.FC = () => {
     <main className={`tw-main ${sessions.some(item => item.status !== 'draft') ? 'has-progress' : ''}`}>
       {storageError && <div className="tw-inline-warning">Браузер не смог сохранить данные. Скачайте архив перед закрытием страницы.</div>}
       <div className="tw-title-row">
-        <div><span className="tw-kicker">Типирование с явными сомнениями</span><h1>НейроТипировщик</h1><h2 className="tw-subtitle">Проверяем гипотезы.<br />Показываем, где сомневаемся.</h2><p>Пятнадцать признаков Рейнина, дух квадры и восемь аспектов проверяются отдельно, затем ИИ сравнивает альтернативы и критикует итог. Если ответ задержится, через 3 минуты 30 секунд появится локальная предварительная версия. Процент показывает завершённые проверки, а не оставшееся время.</p></div>
+        <div><span className="tw-kicker">Типирование с явными сомнениями</span><h1>НейроТипировщик</h1><h2 className="tw-subtitle">Проверяем гипотезы.<br />Показываем, где сомневаемся.</h2><p>Расскажите о реальных решениях и поступках. Мы проверим цитаты, сравним версии и покажем вопросы, которые помогут их различить. Если данных мало, тип останется открытым. Результат служит гипотезой для самонаблюдения.</p></div>
         <div className="tw-trust-card"><ShieldCheck /><b>Ваши материалы разделены по людям</b><span>Ответы и аудио Анны никогда не смешиваются с материалами второго участника.</span></div>
       </div>
 
@@ -593,7 +596,8 @@ export const TypistWorkbench: React.FC = () => {
         {sessions.map((session, index) => <article key={session.id} className={`tw-person-panel ${activeId === session.id ? 'is-active' : ''}`}>
           <div className="tw-person-panel-label"><span><Users size={15} /></span>{session.name}<div><button title={session.collapsed ? 'Развернуть участника' : 'Свернуть участника'} onClick={() => update(session.id, { collapsed: !session.collapsed })} aria-label={session.collapsed ? 'Развернуть' : 'Свернуть'}>{session.collapsed ? <ChevronDown size={15} /> : <ChevronUp size={15} />}</button><button title="Удалить участника и его материалы" onClick={() => removePerson(session)} aria-label="Удалить участника"><Trash2 size={15} /></button></div></div>
           {!session.collapsed && <>
-          {session.status === 'draft' && <PersonInput session={session} debugConsent={debugConsent} useIncluded={byok.mode === 'included'} audioCapable={byok.omniEnabled !== false && (activeConnections(byok).some(item => item.omniCapable) || /(?:gemini|gpt-4o-audio|omni)/i.test(byok.model))} onChange={patch => update(session.id, patch)} onAddAudio={audio => addAudio(session.id, audio)} onRemoveAudio={audio => removeAudio(session.id, audio)} onAnalyze={() => analyze(session)} />}
+          {session.status === 'draft' && !!session.followUpQuestions?.length && <div className="tw-follow-up tw-follow-up-draft"><h3>Добавьте примеры к рассказу</h3><ol>{session.followUpQuestions.map(question => <li key={question}>{question}</li>)}</ol></div>}
+          {session.status === 'draft' && <PersonInput session={session} debugConsent={debugConsent} useIncluded={byok.mode === 'included'} audioCapable={byok.omniEnabled !== false && (activeConnections(byok).some(item => item.omniCapable) || (!['dewiar', 'polza', 'vsegpt'].includes(byok.provider) && /(?:gemini|gpt-4o-audio|omni)/i.test(byok.model)))} onChange={patch => update(session.id, patch)} onAddAudio={audio => addAudio(session.id, audio)} onRemoveAudio={audio => removeAudio(session.id, audio)} onAnalyze={() => analyze(session)} />}
           {session.status === 'analyzing' && <WaitingCard session={session} transferProgress={transferProgress[session.id] ?? 100} onCancel={() => { void cancelAnalysis(session); }} />}
           {(session.status === 'local-ready' || session.status === 'ai-ready' || session.status === 'error') && <>
             {session.error && <div className="tw-inline-warning">{session.error}</div>}

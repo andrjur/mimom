@@ -1,3 +1,5 @@
+import { resolveProvider, includedReady, textEndpoint, textRequestBody } from './providers.js';
+import { runCompactPipeline, PIPELINE_VERSION } from './compact-pipeline.js';
 import { EmailMessage } from 'cloudflare:email';
 import { WorkflowEntrypoint } from 'cloudflare:workers';
 import { seal, unseal, emitJob, readJob, refundJob, expireJobs } from './jobs.js';
@@ -89,60 +91,6 @@ function parseJsonResponse(payload) {
   }
 }
 
-function resolveProvider(env, byok = {}) {
-  if (byok.mode === 'byok') {
-    if (!byok.key || typeof byok.key !== 'string' || byok.key.length < 8) throw new Error('BYOK_KEY_MISSING');
-    const allowed = new Set(['knyazev', 'just', 'routerai', 'gemini', 'openai', 'anthropic', 'openrouter', 'custom']);
-    if (!allowed.has(byok.provider)) throw new Error('BYOK_PROVIDER_NOT_ALLOWED');
-    const defaults = {
-      routerai: 'https://routerai.ru/api/v1',
-      knyazev: 'https://knyazevai.work/v1',
-      just: 'https://api.justwoker.icu/v1',
-      gemini: 'https://generativelanguage.googleapis.com/v1beta/openai',
-      openai: 'https://api.openai.com/v1',
-      anthropic: 'https://api.anthropic.com/v1',
-      openrouter: 'https://openrouter.ai/api/v1'
-    };
-    let baseUrl = defaults[byok.provider] || String(byok.baseUrl || '');
-    if (byok.provider === 'custom') {
-      if (env.ALLOW_CUSTOM_BYOK !== 'true') throw new Error('CUSTOM_BYOK_DISABLED');
-      const target = new URL(baseUrl);
-      const hostname = target.hostname.toLowerCase();
-      if (target.protocol !== 'https:' || hostname === 'localhost' || hostname.endsWith('.local') || /^127\./.test(hostname) || /^10\./.test(hostname) || /^192\.168\./.test(hostname)) {
-        throw new Error('CUSTOM_BYOK_URL_NOT_ALLOWED');
-      }
-    }
-    return {
-      provider: byok.provider,
-      shared: false,
-      key: byok.key,
-      baseUrl: baseUrl.replace(/\/$/, ''),
-      model: String(byok.model || ''),
-      effort: ['low', 'medium', 'high', 'xhigh', 'max'].includes(byok.effort) ? byok.effort : 'high',
-      logPrompts: env.LOG_PROMPTS === 'true'
-    };
-  }
-  const includedProvider = String(env.INCLUDED_PROVIDER || 'knyazev').toLowerCase();
-  const includedKey = includedProvider === 'just' ? env.JUST_API_KEY : env.KNYAZEV_API_KEY;
-  if (!includedKey) throw new Error('INCLUDED_PROVIDER_NOT_CONFIGURED');
-  if (includedProvider === 'just') return {
-    provider: 'custom',
-    shared: true,
-    key: includedKey,
-    baseUrl: (env.JUST_BASE_URL || 'https://api.justwoker.icu/v1').replace(/\/$/, ''),
-    model: env.JUST_MODEL || 'gpt-5.6-luna',
-    logPrompts: env.LOG_PROMPTS === 'true'
-  };
-  return {
-    provider: 'knyazev',
-    shared: true,
-    key: includedKey,
-    baseUrl: (env.KNYAZEV_BASE_URL || 'https://knyazevai.work/v1').replace(/\/$/, ''),
-    model: env.KNYAZEV_MODEL || 'minimax-2.7',
-    logPrompts: env.LOG_PROMPTS === 'true'
-  };
-}
-
 function resolveProviders(env, byok = {}) {
   if (byok.mode !== 'byok' || !Array.isArray(byok.connections) || !byok.connections.length) return [resolveProvider(env, byok)];
   const active = byok.connections.filter(item => item && item.policy !== 'off');
@@ -180,8 +128,8 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
   const model = modelOverride || config.model;
   const startedAt = Date.now();
   const controller = new AbortController();
-  // Gonka can successfully answer after 3-4 minutes. Do not abort it at 45-90 seconds.
-  const timeoutMs = config.provider === 'knyazev' ? Math.max(270000, Number(meta.timeoutMs || 0)) : Number(meta.timeoutMs || 90000);
+  // Each request has a bounded timeout; verified results survive a failed report.
+  const timeoutMs = Number(meta.timeoutMs || 75000);
   const timeout = setTimeout(() => controller.abort('MODEL_TIMEOUT'), timeoutMs);
   const logFull = Boolean(config.logPrompts && meta.fullLog);
   console.log({
@@ -192,7 +140,7 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
   });
   try {
     let response;
-    if (meta.env && meta.jobId) await emitJob(meta.env, meta.jobId, { event: 'model.request', stage: meta.stage, provider: config.provider, model, promptVersion: 'stability-1', promptChars: prompt.length, prompt: meta.fullLog ? prompt : undefined });
+    if (meta.env && meta.jobId) await emitJob(meta.env, meta.jobId, { event: 'model.request', stage: meta.stage, provider: config.provider, model, promptVersion: PIPELINE_VERSION, promptChars: prompt.length, prompt: meta.fullLog ? prompt : undefined });
     if (config.provider === 'anthropic') {
       response = await fetch(`${config.baseUrl || 'https://api.anthropic.com/v1'}/messages`, {
         method: 'POST',
@@ -201,24 +149,18 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
         body: JSON.stringify({ model, max_tokens: meta.maxTokens || 2400, temperature: 0.1, output_config: { effort: config.effort || 'high' }, messages: [{ role: 'user', content: prompt }] })
       });
     } else {
-      response = await fetch(`${config.baseUrl}/chat/completions`, {
+      response = await fetch(textEndpoint(config), {
         method: 'POST',
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.key}` },
-        body: JSON.stringify({
-          model, temperature: 0.1, ...(meta.maxTokens ? { max_tokens: meta.maxTokens } : {}), response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: 'Return valid JSON only. Be explicit about uncertainty. Never infer facts that are not supported by the supplied material.' },
-            { role: 'user', content: prompt }
-          ]
-        })
+        body: JSON.stringify(textRequestBody(config, model, prompt, meta.maxTokens || 2400))
       });
     }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload?.error?.message || payload?.message || `UPSTREAM_${response.status}`);
     if (payload?.choices?.[0]?.finish_reason === 'length') throw new Error('MODEL_OUTPUT_TRUNCATED');
     const parsed = parseJsonResponse(payload);
-    if (meta.env && meta.jobId) await emitJob(meta.env, meta.jobId, { event: 'model.response', stage: meta.stage, provider: config.provider, model, durationMs: Date.now() - startedAt, usage: payload.usage || null, response: parsed });
+    if (meta.env && meta.jobId) await emitJob(meta.env, meta.jobId, { event: 'model.response', stage: meta.stage, provider: config.provider, model, durationMs: Date.now() - startedAt, usage: payload.usage || null, requestCost: payload.billing?.request_cost ?? null, response: parsed });
     console.log({
       event: 'typist.model.response', traceId: meta.traceId || '', stage: meta.stage || 'unknown',
       provider: config.provider, model, durationMs: Date.now() - startedAt,
@@ -240,7 +182,7 @@ async function callTextModel(config, prompt, modelOverride, meta = {}) {
 
 async function transcribeAudio(env, audio, voiceGuide, byok = {}) {
   if (!audio?.length) return '';
-  const chosen = byok.mode === 'byok' ? resolveProviders(env, byok).find(item => /gemini|gpt-4o-audio|omni/i.test(item.model)) : null;
+  const chosen = byok.mode === 'byok' ? resolveProviders(env, byok).find(item => !['dewiar', 'polza', 'vsegpt'].includes(item.provider) && /gemini|gpt-4o-audio|omni/i.test(item.model)) : null;
   const config = chosen || (env.OMNI_API_KEY && env.OMNI_BASE_URL && env.OMNI_MODEL ? { key: env.OMNI_API_KEY, baseUrl: env.OMNI_BASE_URL, model: env.OMNI_MODEL } : null);
   if (!config) throw new Error('OMNI_NOT_CONFIGURED');
   const parts = [{ type: 'text', text: `Сделай точную расшифровку аудио. ${voiceGuide ? `Дополнительный ориентир пользователя: ${voiceGuide}.` : 'Если говорящих несколько и их нельзя надёжно различить, не приписывай реплики конкретному человеку.'} Верни JSON {"transcript":"...","voiceObservations":["..."]}. Наблюдения по темпу и паузам помечай как слабые признаки. Не определяй социотип.` }];
@@ -266,15 +208,15 @@ const compact = value => JSON.stringify(value);
 
 const REININ_PROBES = [
   ['ei', 'Экстраверсия / Интроверсия', 'Экстраверсия', 'Интроверсия', 1, 'Экстраверт расширяет поле объектов, людей и внешних связей; интроверт углубляет отношение субъекта к одному объекту и его внутренним нюансам.', 'Не считай общительность, сценичность, застенчивость или количество друзей прямым доказательством.'],
-  ['le', 'Логика / Этика', 'Логика', 'Этика', 2, 'Логический полюс формализует через факты, правила, причинность и эффективность; этический — через мотивы, отношения, состояние людей и влияние решения на них.', 'Профессия, образование, управленческий жаргон и выученные нормы могут маскировать естественный язык выбора.'],
-  ['si', 'Сенсорика / Интуиция', 'Сенсорика', 'Интуиция', 2, 'Сенсорный полюс возвращает рассказ к телу, территории, ресурсам и наблюдаемому действию; интуитивный — к возможностям, времени, смыслам и альтернативным сценариям.', 'Спорт, массаж, фантазии или любовь к технологиям по отдельности не определяют полюс.'],
+  ['le', 'Логика / Этика', 'Логика', 'Этика', 2, 'Логический полюс формализует через факты, правила, причинность и эффективность; этический , через мотивы, отношения, состояние людей и влияние решения на них.', 'Профессия, образование, управленческий жаргон и выученные нормы могут маскировать естественный язык выбора.'],
+  ['si', 'Сенсорика / Интуиция', 'Сенсорика', 'Интуиция', 2, 'Сенсорный полюс возвращает рассказ к телу, территории, ресурсам и наблюдаемому действию; интуитивный , к возможностям, времени, смыслам и альтернативным сценариям.', 'Спорт, массаж, фантазии или любовь к технологиям по отдельности не определяют полюс.'],
   ['ri', 'Рациональность / Иррациональность', 'Рациональность', 'Иррациональность', 0.5, 'Рациональный полюс старается заранее зафиксировать решение, порядок и обязательство; иррациональный держит форму открытой и перестраивается вслед за изменившейся ситуацией.', 'Дисциплина, дедлайн, тревога и хаос быта могут быть внешней адаптацией. Вес этого признака половинный.'],
   ['sd', 'Статика / Динамика', 'Статика', 'Динамика', 2, 'Статика членит опыт на состояния, объекты и качества как отдельные кадры; динамика описывает непрерывный поток изменений, действий и переходов.', 'Считай грамматику и способ сборки рассказа на длинных фрагментах, а не наличие отдельных глаголов.'],
   ['yo', 'Уступчивость / Упрямство', 'Уступчивость', 'Упрямство', 1, 'Уступчивый легче меняет интерес или цель ради доступных ресурсов; упрямый меняет набор ресурсов и способов, сохраняя выбранный интерес.', 'Не путай с мягкостью, конфликтностью, покладистостью или силой воли.'],
   ['ad', 'Аристократия / Демократия', 'Аристократия', 'Демократия', 1, 'Аристократический полюс быстрее считывает принадлежность к группе, роль, статус и нормы слоя; демократический оценивает человека индивидуально, слабее опираясь на групповой ранг.', 'Должность, армейская или корпоративная среда создают сильные выученные маркеры.'],
   ['ts', 'Тактика / Стратегия', 'Тактика', 'Стратегия', 1, 'Тактик отталкивается от доступного следующего шага и уточняет цель по ходу; стратег удерживает дальнюю цель и подбирает либо отбрасывает шаги относительно неё.', 'Умение составлять планы есть у обоих полюсов; важно, что остаётся фиксированным при изменениях.'],
   ['ce', 'Конструктивизм / Эмотивизм', 'Конструктивизм', 'Эмотивизм', 1, 'Конструктивист сначала меняет предметную ситуацию и через дело регулирует состояние; эмотивист сначала настраивает эмоциональную атмосферу и уже из неё переходит к делу.', 'Забота поступком и сочувственные формулы могут быть воспитанными социальными навыками.'],
-  ['cf', 'Беспечность / Предусмотрительность', 'Беспечность', 'Предусмотрительность', 1, 'Беспечный начинает с того, что доступно сейчас, и достраивает контекст по ходу; предусмотрительный заранее собирает условия, риски, ресурсы и недостающие сведения.', 'Не приравнивай тревожность к предусмотрительности, а смелость — к беспечности.'],
+  ['cf', 'Беспечность / Предусмотрительность', 'Беспечность', 'Предусмотрительность', 1, 'Беспечный начинает с того, что доступно сейчас, и достраивает контекст по ходу; предусмотрительный заранее собирает условия, риски, ресурсы и недостающие сведения.', 'Не приравнивай тревожность к предусмотрительности, а смелость , к беспечности.'],
   ['qd', 'Квестимность / Деклатимность', 'Квестимность', 'Деклатимность', 1, 'Квестим строит речь как обмен, оставляет открытые петли и ориентируется на ответ собеседника; деклатим выдаёт цельные завершённые утверждения и дольше удерживает монологическую форму.', 'Интервью, диктовка, монтаж и привычка к публичным выступлениям сильно искажают этот признак.'],
   ['pn', 'Позитивизм / Негативизм', 'Позитивизм', 'Негативизм', 1, 'Позитивист начинает с имеющихся элементов и работающих связей; негативист замечает исключения, отсутствие, дефицит и то, чем объект не является.', 'Эмоциональный оптимизм или мрачность не равны этому информационному признаку.'],
   ['pr', 'Процесс / Результат', 'Процесс', 'Результат', 1, 'Процессный полюс погружается в течение деятельности и внутренние стадии; результатный членит путь завершёнными итогами, закрывает этап и переключается.', 'Дедлайн, отчётность и проектный жаргон временно делают речь более результатной.'],
@@ -295,12 +237,11 @@ const ASPECT_PROBES = [
 
 const QUADRA_PROBE = {
   id: 'quadra-spirit', kind: 'quadra', label: 'Дух квадры', weight: 1,
-  focus: 'Альфа: ЧИ+БЛ+ЧЭ+БС — любопытство, равный обмен идеями, лёгкость и комфорт; Бета: ЧЭ+БЛ+ЧС+БИ — мобилизация, иерархия, драматизм и общий исторический вектор; Гамма: ЧС+БЭ+ЧЛ+БИ — личная ответственность, результат, верность выбранным отношениям и реалистичный прогноз; Дельта: ЧЛ+БЭ+ЧИ+БС — полезность, развитие талантов, спокойная человечность и качество повседневности'
+  focus: 'Альфа: ЧИ+БЛ+ЧЭ+БС , любопытство, равный обмен идеями, лёгкость и комфорт; Бета: ЧЭ+БЛ+ЧС+БИ , мобилизация, иерархия, драматизм и общий исторический вектор; Гамма: ЧС+БЭ+ЧЛ+БИ , личная ответственность, результат, верность выбранным отношениям и реалистичный прогноз; Дельта: ЧЛ+БЭ+ЧИ+БС , полезность, развитие талантов, спокойная человечность и качество повседневности'
 };
 
 const ALL_PROBES = [...REININ_PROBES, QUADRA_PROBE, ...ASPECT_PROBES];
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const MODEL_A_POSITIONS = '1 программная: сильная базовая призма; 2 творческая: сильный гибкий инструмент; 3 ролевая: нормативная маска и напряжение; 4 болевая: уязвимость к критике; 5 суггестивная: потребность во внешней поддержке; 6 активационная: мотивируется поддержкой; 7 ограничительная: сильное жёсткое пресечение; 8 фоновая: сильная автоматическая забота без демонстрации';
 
 function stableModelIndex(seed, probeId, length) {
   let hash = 2166136261;
@@ -321,156 +262,17 @@ async function claimSharedProviderSlot(env, provider, traceId) {
   if (wait) await delay(wait);
 }
 
-function probePrompt(source, probe) {
-  if (probe.kind === 'reinin') {
-    return `${source}\n\nНЕЗАВИСИМАЯ ПРОВЕРКА ОДНОГО ПРИЗНАКА РЕЙНИНА: ${probe.label}. Рабочее различение: ${probe.focus} Контрольная ловушка: ${probe.trap} Рассматривай только эту шкалу. Не определяй ТИМ и не подгоняй ответ под тип. Ищи устойчивые способы выбора и речи, а не профессию, настроение, социальную роль или одно слово. Отдельно проверь наиболее сильное альтернативное объяснение. Приведи до трёх коротких дословных цитат из материала. Если данных мало, так и скажи. Вес признака при итоговом синтезе: ${probe.weight}. JSON строго: {"probeId":"${probe.id}","label":"${probe.label}","pole":"${probe.poleA}|${probe.poleB}|insufficient","score":0,"confidence":0,"evidence":[{"quote":"","observation":""}],"counterEvidence":[""],"alternativeExplanation":"","missing":""}. score от -100 (${probe.poleB}) до +100 (${probe.poleA}); confidence 0–100.`;
-  }
-  if (probe.kind === 'quadra') {
-    return `${source}\n\nНЕЗАВИСИМАЯ ПРОВЕРКА «ДУХ КВАДРЫ». Оцени не отдельные слова и не предполагаемый ТИМ, а устойчивую атмосферу ценностей, форму кооперации, отношение к силе, пользе, идеям, эмоциональной мобилизации, личной дистанции и телесному комфорту. Ориентир: ${probe.focus}. Не определяй ТИМ. Различай личные ценности, рабочую роль, культуру среды и желаемый образ. Для каждой квадры приведи аргумент «за» и возможное альтернативное объяснение. JSON строго: {"probeId":"quadra-spirit","label":"Дух квадры","scores":{"Альфа":0,"Бета":0,"Гамма":0,"Дельта":0},"leading":"Альфа|Бета|Гамма|Дельта|insufficient","confidence":0,"evidence":[{"quote":"","observation":""}],"counterEvidence":[""],"culturalCaveat":"","missing":""}. Баллы 0–100 не обязаны суммироваться до 100.`;
-  }
-  return `${source}\n\nНЕЗАВИСИМАЯ ПРОВЕРКА ОДНОГО ИНФОРМАЦИОННОГО АСПЕКТА: ${probe.label}. Фокус: ${probe.focus}. Таблица Шанэри как дополнительная линза: ${probe.shaneri}. Позиции Модели А: ${MODEL_A_POSITIONS}. Не определяй ТИМ. Отличай свободное использование аспекта от демонстративной роли, выученного жаргона и болезненной компенсации. Приведи до трёх коротких цитат. Предложи не более двух возможных позиций функции и явно укажи, если различить их нельзя. JSON строго: {"probeId":"${probe.id}","label":"${probe.label}","manifestation":"strong|mixed|weak|insufficient","confidence":0,"positionHypotheses":[{"position":0,"confidence":0,"reason":""}],"evidence":[{"quote":"","observation":""}],"shadowSignals":[""],"giftSignals":[""],"missing":""}.`;
-}
-
 function chooseProvider(providers, seed, probeId) {
-  const index = ALL_PROBES.findIndex(probe => probe.id === probeId);
+  const index = ['reinin-ei', 'reinin-yo', 'reinin-qd', 'quadra-spirit'].indexOf(probeId);
   const mandatory = providers.filter(item => item.policy === 'always');
   if (index >= 0 && index < mandatory.length) return mandatory[index];
   const tickets = providerTickets(providers);
   return tickets[stableModelIndex(seed, `provider:${probeId}`, tickets.length)];
 }
 
-async function runProbeWave(env, providers, probes, source, mixSeed, meta, diagnostics = {}) {
-  const tickets = providerTickets(providers);
-  const settled = await Promise.allSettled(probes.map(async probe => {
-    const provider = chooseProvider(providers, mixSeed, probe.id);
-    const modelPool = provider.provider === 'knyazev'
-      ? String(env.KNYAZEV_MIX_MODELS || 'minimax-2.7,deepseek-v4-flash,kimi-2.6').split(',').map(item => item.trim()).filter(Boolean)
-      : [provider.model];
-    const model = modelPool[stableModelIndex(mixSeed, probe.id, modelPool.length)];
-    const execute = async () => {
-    const event = (status, extra = {}) => emitJob(env, diagnostics.jobId, { event: 'probe.status', stage: { id: probe.id, label: probe.label, provider: provider.label || provider.provider, model, status, ...extra } });
-    try {
-    await event('waiting');
-    await claimSharedProviderSlot(env, provider, meta(`probe:${probe.id}`).traceId);
-    await event('running');
-    let result;
-    let usedModel = model;
-    try {
-      // 2400 is a provider-safe ceiling for a structured probe; the old 850-token cap was truncating JSON.
-      result = await callTextModel(provider, probePrompt(source, probe), model, { ...meta(`probe:${probe.id}`), maxTokens: 2400, timeoutMs: 90000 });
-    } catch (error) {
-      if (provider.provider !== 'knyazev') throw error;
-      // One bounded retry within the inexpensive Gonka pool; never silently buy a premium model.
-      usedModel = model === 'minimax-2.7' ? 'deepseek-v4-flash' : 'minimax-2.7';
-      await event('waiting', { model: usedModel, note: 'Сбой Gonka: одна попытка другой дешёвой моделью' });
-      await claimSharedProviderSlot(env, provider, meta(`probe:${probe.id}:budget-fallback`).traceId);
-      await event('running', { model: usedModel });
-      result = await callTextModel(provider, probePrompt(source, probe), usedModel, { ...meta(`probe:${probe.id}:budget-fallback`), maxTokens: 2400, timeoutMs: 90000 });
-      result.modelFallback = { requested: model, used: usedModel, reason: error instanceof Error ? error.message : String(error) };
-    }
-    const verified = verifyQuotes(result, source);
-    await event('done', { model: usedModel, rawResponse: verified });
-    return { ...verified, model: usedModel, provider: provider.label || provider.provider };
-    } catch (error) {
-      if (String(error?.message) === 'JOB_CANCELLED') throw error;
-      await event('warning', { note: String(error?.message || error) });
-      return { status: 'warning', error: String(error?.message || error), confidence: 0, model, provider: provider.label || provider.provider };
-    }
-    };
-    return diagnostics.step ? diagnostics.step.do(`probe-${probe.id}`, { retries: { limit: 0, delay: '1 second' }, timeout: '30 minutes' }, execute) : execute();
-  }));
-  return settled.map((entry, index) => entry.status === 'fulfilled'
-    ? { ...entry.value, probeId: probes[index].id, label: probes[index].label, status: entry.value.status || 'done' }
-    : { probeId: probes[index].id, label: probes[index].label, status: 'warning', error: entry.reason instanceof Error ? entry.reason.message : String(entry.reason), confidence: 0 });
-}
-
-function verifyQuotes(result, source) {
-  if (!Array.isArray(result.evidence)) return result;
-  return { ...result, evidence: result.evidence.map(item => ({ ...item, quoteVerified: typeof item.quote === 'string' && item.quote.trim().length > 0 && source.includes(item.quote) })) };
-}
-
 async function runPipeline(env, providers, text, audioContext, lockedDichotomies = {}, lockedPsychosophy = {}, preferredTim = '', diagnostics = {}) {
-  const tickets = providerTickets(providers);
-  const finalProvider = providers.find(item => item.policy === 'always') || providers.find(item => item.policy === 'system') || tickets[stableModelIndex(diagnostics.mixSeed || diagnostics.traceId, 'final', tickets.length)];
-  const finalModel = finalProvider.provider === 'knyazev' ? (env.FINAL_MODEL || 'minimax-2.7') : finalProvider.model;
-
-  const hardConstraints = Object.keys(lockedDichotomies || {}).length || Object.keys(lockedPsychosophy || {}).length
-    ? `\n\nЖЁСТКИЕ ОГРАНИЧЕНИЯ ПОЛЬЗОВАТЕЛЯ (не меняй и не оспаривай их при пересчёте):\nДихотомии: ${compact(lockedDichotomies)}\nПсихософия: ${compact(lockedPsychosophy)}`
-    : '';
-  const preference = TYPE_NAMES[preferredTim] ? `\n\nПРЕДПОЧТЕНИЕ ПОЛЬЗОВАТЕЛЯ: ${preferredTim} (${TYPE_NAMES[preferredTim]}). Это не доказательство и не жёсткий замок: отдельно проверь эту версию и честно укажи, подтверждается ли она.` : '';
-  const source = `ТЕКСТ УЧАСТНИКА:\n${text || '[текста нет]'}\n\nАУДИО/ТРАНСКРИПТ:\n${audioContext || '[аудио нет]'}${hardConstraints}${preference}`;
-  const meta = stage => ({ traceId: diagnostics.traceId, fullLog: diagnostics.fullLog, stage, env, jobId: diagnostics.jobId });
-  const requestsPerMinute = Math.max(1, Math.min(10, Number(env.PROBE_REQUESTS_PER_MINUTE || 10)));
-  const waves = [];
-  for (let index = 0; index < ALL_PROBES.length; index += requestsPerMinute) waves.push(ALL_PROBES.slice(index, index + requestsPerMinute));
-  const probeResults = [];
-  for (let index = 0; index < waves.length; index += 1) {
-    probeResults.push(...await runProbeWave(env, providers, waves[index], source, diagnostics.mixSeed || diagnostics.traceId, meta, diagnostics));
-  }
-
-  const successful = probeResults.filter(item => item.status === 'done');
-  if (!successful.length) throw new Error('ALL_PROBES_FAILED');
-  const synthesize = async () => {
-  await claimSharedProviderSlot(env, finalProvider, diagnostics.traceId);
-  await emitJob(env, diagnostics.jobId, { event: 'probe.status', stage: { id: 'final', label: 'Синтез и критик', status: 'running', model: finalModel, provider: finalProvider.label || finalProvider.provider } });
-  const finalResult = await callTextModel(finalProvider, `${source}\n\nРЕЗУЛЬТАТЫ 24 НЕЗАВИСИМЫХ ПРОВЕРОК:\n${compact(successful)}\n\nЗАДАЧА СИНТЕЗА. Сопоставь 15 признаков Рейнина, дух квадры и 8 аспектов с гипотезами позиций Модели А. Базис Юнга и Статика/Динамика имеют больший вес, Рациональность/Иррациональность — половинный; остальные признаки — обычный. Не считай отсутствие признака доказательством противоположного. Сначала сравни минимум три конкурирующих ТИМа, затем выступи критиком лидера: ищи натяжки, ролевое поведение, культурную среду, желаемый образ и противоречащие цитаты. Если надёжных данных нет, верни confidenceLevel=insufficient. Основной тип и альтернативы только из списка ${Object.entries(TYPE_NAMES).map(([k,v]) => `${k} (${v})`).join(', ')}. JSON строго: {"tim":{"abbreviation":"","name":""},"summary":"","confidence":0,"confidenceLevel":"low|medium|high|insufficient","alternatives":[{"abbreviation":"","name":"","probability":0,"reason":""}],"dichotomies":[{"name":"","result":"","confidence":0,"evidence":""}],"wordEvidence":[{"word":"короткая цитата","dimension":"","pole":"","count":1,"weight":1}],"doubts":[""],"quadra":{"name":"","confidence":0,"evidence":""},"probeAgreement":{"agree":0,"disagree":0,"insufficient":0}}. Не раскрывай скрытую цепочку рассуждений; покажи только проверяемые основания и сомнения.`, finalModel, { ...meta('final-synthesis'), maxTokens: 5200, timeoutMs: 100000 });
-
-  await emitJob(env, diagnostics.jobId, { event: 'probe.status', stage: { id: 'final', label: 'Синтез и критик', status: 'done', model: finalModel, provider: finalProvider.label || finalProvider.provider, rawResponse: finalResult } });
-  return finalResult;
-  };
-  const finalResult = diagnostics.step ? await diagnostics.step.do('final-synthesis', { retries: { limit: 0, delay: '1 second' }, timeout: '10 minutes' }, synthesize) : await synthesize();
-  return {
-    result: finalResult,
-    probeResults,
-    stages: [
-      ...probeResults.map(item => ({ id: item.probeId, label: item.label, status: item.status, model: item.model, provider: item.provider, rawResponse: item })),
-      { id: 'final', label: 'Синтез и критик', status: 'done', model: finalModel, provider: finalProvider.label || finalProvider.provider, rawResponse: finalResult }
-    ],
-    providerUsed: `${providers.map(item => item.label || item.provider).join(' + ')} → ${finalProvider.label || finalProvider.provider}:${finalModel}`,
-    requestPlan: { probes: ALL_PROBES.length, requestsPerMinute, waves: waves.length, fallbackAfterSeconds: 210 }
-  };
-}
-
-function applyExplicitRandomFallback(pipeline, input, audioContext, traceId) {
-  const result = pipeline?.result || {};
-  const abbreviation = String(result?.tim?.abbreviation || result?.tim || '').trim().toUpperCase();
-  const percentage = value => Math.max(0, Math.min(100, Number(value) || 0));
-  const confidence = percentage(result?.confidence);
-  const strongestAlternative = Math.max(0, ...(Array.isArray(result?.alternatives) ? result.alternatives.map(item => Number(item?.probability || 0)) : []));
-  const criticalLead = confidence >= 60 && confidence - strongestAlternative >= 12 && result?.confidenceLevel !== 'insufficient';
-  const modelUndecided = !TYPE_NAMES[abbreviation] || !criticalLead;
-  const hasPreference = Boolean(TYPE_NAMES[String(input.preferredTim || '').trim().toUpperCase()]);
-  const hasLocks = Object.keys(input.lockedDichotomies || {}).length > 0 || Object.keys(input.lockedPsychosophy || {}).length > 0;
-  const usefulText = (String(input.text || '').match(/[а-яёa-z0-9-]+/gi) || []).length >= 8;
-  const usefulAudio = Boolean(audioContext && !/^\[Аудио/.test(audioContext));
-  const noUsableMaterial = !usefulText && !usefulAudio;
-  if ((!modelUndecided && !noUsableMaterial) || hasPreference || hasLocks) return pipeline;
-
-  const abbreviations = Object.keys(TYPE_NAMES);
-  const randomIndex = crypto.getRandomValues(new Uint32Array(1))[0] % abbreviations.length;
-  const randomAbbreviation = abbreviations[randomIndex];
-  const alternatives = [1, 2].map(offset => {
-    const alt = abbreviations[(randomIndex + offset * 5) % abbreviations.length];
-    return { abbreviation: alt, name: TYPE_NAMES[alt], probability: 0, reason: 'Случайная запасная версия; не результат анализа.' };
-  });
-  pipeline.result = {
-    ...result,
-    tim: { abbreviation: randomAbbreviation, name: TYPE_NAMES[randomAbbreviation] },
-    summary: `Модель не смогла обоснованно определить ТИМ. Чтобы всё равно открыть интерфейс результата, генератор случайности выбрал ${TYPE_NAMES[randomAbbreviation]} (${randomAbbreviation}). Это не типирование и не рекомендация.`,
-    confidence: 0,
-    confidenceLevel: 'insufficient',
-    alternatives,
-    dichotomies: [],
-    wordEvidence: [],
-    doubts: [
-      'ТИМ выбран криптографическим генератором случайных чисел, потому что доказательств и пользовательских предпочтений не было.',
-      ...(Array.isArray(result?.doubts) ? result.doubts : [])
-    ],
-    randomFallback: true
-  };
-  pipeline.originalHypothesis = result;
-  console.warn({ event: 'typist.random_fallback', traceId, reason: noUsableMaterial ? 'no_usable_material' : 'model_undecided', selectedTim: randomAbbreviation });
-  return pipeline;
+  return runCompactPipeline({ env, providers, text, audioContext, locks: lockedDichotomies, definitions: ALL_PROBES, diagnostics,
+    callModel: callTextModel, chooseProvider, claimSlot: claimSharedProviderSlot, emit: emitJob });
 }
 
 async function saveDebug(env, input, visitorId, ctx) {
@@ -505,7 +307,7 @@ async function finishDebugCopy(env, debugCopy, pipeline, audioContext) {
   const markdown = [
     '# Результат типирования',
     '',
-    `Основная гипотеза: **${result?.tim?.name || 'не определена'} (${result?.tim?.abbreviation || '—'})**`,
+    `Основная гипотеза: **${result?.tim?.name || 'не определена'} (${result?.tim?.abbreviation || ','})**`,
     `Уверенность: ${Number(result?.confidence || 0)}% · ${result?.confidenceLevel || 'insufficient'}`,
     '',
     '## Резюме',
@@ -564,7 +366,7 @@ async function handleAnalyze(request, env, visitor, ctx) {
     input.lockedDichotomies || {}, input.lockedPsychosophy || {}, input.preferredTim || '',
     { traceId, mixSeed: cleanId(input.sessionId) || traceId, fullLog: Boolean(input.debugConsent) }
   );
-  pipeline = applyExplicitRandomFallback(pipeline, input, audioContext, traceId);
+  pipeline.result.randomFallback = false;
   await finishDebugCopy(env, debugCopy, pipeline, audioContext);
   console.log({ event: 'typist.analysis.complete', traceId, selectedTim: pipeline?.result?.tim?.abbreviation || '', confidence: pipeline?.result?.confidence || 0, randomFallback: Boolean(pipeline?.result?.randomFallback) });
   return json({ ...pipeline, traceId, attemptsLeft: Number(credits?.analysis_credits ?? 0), questionsLeft: Number(credits?.question_credits ?? 0), debugId: debugCopy?.submissionId || null });
@@ -619,10 +421,10 @@ export class TypistWorkflow extends WorkflowEntrypoint {
     try {
       await step.do('start', async () => {
         await env.DB.prepare("UPDATE analysis_jobs SET status = 'running' WHERE id = ? AND status = 'queued'").bind(id).run();
-        await emitJob(env, id, { event: 'analysis.start', traceId: id, promptVersion: 'stability-1', textChars: input.text.length, audioContext: input.audioContext || '' });
+        await emitJob(env, id, { event: 'analysis.start', traceId: id, promptVersion: PIPELINE_VERSION, textChars: input.text.length, audioContext: input.audioContext || '' });
       });
       const pipeline = await runPipeline(env, resolveProviders(env, input.byok), input.text, input.audioContext || '', input.lockedDichotomies, input.lockedPsychosophy, input.preferredTim, { step, jobId: id, traceId: id, mixSeed: id, fullLog: Boolean(input.debugConsent) });
-      const result = applyExplicitRandomFallback(pipeline, input, input.audioContext || '', id);
+      const result = pipeline;
       result.traceId = id;
       await step.do('complete', async () => {
         const credits = await ensureUser(env, job.owner);
@@ -650,7 +452,7 @@ async function createJob(request, env, visitor) {
   resolveProviders(env, input.byok || {});
   const text = String(input.text || '');
   if (text.length < 30 && String(input.audioContext || '').length < 30) return json({ error: 'NOT_ENOUGH_DATA', message: 'Добавьте текст или готовую расшифровку.' }, 400);
-  if (text.length + String(input.audioContext || '').length > 60000) return json({ error: 'CONTEXT_TOO_LONG', message: 'Лимит материала — 60 000 знаков. Разделите большой текст.' }, 400);
+  if (text.length + String(input.audioContext || '').length > 60000) return json({ error: 'CONTEXT_TOO_LONG', message: 'Лимит материала , 60 000 знаков. Разделите большой текст.' }, 400);
   const included = input.byok?.mode !== 'byok';
   await ensureUser(env, visitor.id);
   const encrypted = await seal(env, { text, audioContext: String(input.audioContext || ''), byok: input.byok || {}, debugConsent: Boolean(input.debugConsent), lockedDichotomies: input.lockedDichotomies || {}, lockedPsychosophy: input.lockedPsychosophy || {}, preferredTim: String(input.preferredTim || '') });
@@ -684,7 +486,7 @@ export default {
     const cookie = visitor.fresh ? `nid=${encodeURIComponent(visitor.id)}; Path=/; Max-Age=31536000; Secure; SameSite=Lax; HttpOnly` : '';
     try {
       let response;
-      if (url.pathname.endsWith('/health') && request.method === 'GET') response = json({ ok: true, release: 'stability-1', storage: Boolean(env.DB), debugStorage: Boolean(env.DEBUG_BUCKET), omni: Boolean(env.OMNI_API_KEY), includedProvider: String(env.INCLUDED_PROVIDER || 'knyazev'), includedReady: Boolean(env.KNYAZEV_API_KEY || env.JUST_API_KEY), jobsReady: Boolean(env.TYPIST_WORKFLOW && env.JOB_ENCRYPTION_KEY) });
+      if (url.pathname.endsWith('/health') && request.method === 'GET') response = json({ ok: true, release: PIPELINE_VERSION, storage: Boolean(env.DB), debugStorage: Boolean(env.DEBUG_BUCKET), omni: Boolean(env.OMNI_API_KEY), includedProvider: String(env.INCLUDED_PROVIDER || 'knyazev'), includedReady: includedReady(env), jobsReady: Boolean(env.TYPIST_WORKFLOW && env.JOB_ENCRYPTION_KEY) });
       else if (url.pathname.endsWith('/jobs') && request.method === 'POST') response = await createJob(request, env, visitor);
       else if (/\/jobs\/[a-zA-Z0-9_-]+$/.test(url.pathname)) {
         const id = url.pathname.split('/').pop();

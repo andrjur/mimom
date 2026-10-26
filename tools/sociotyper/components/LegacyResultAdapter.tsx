@@ -94,12 +94,12 @@ export const LegacyResultAdapter: React.FC<Props> = ({ session, allSessions, onR
       <details className="tw-prompt-window">
         <summary>Что именно проверяет ИИ</summary>
         <p>Отдели наблюдения от интерпретаций. Построй основную и две конкурирующие гипотезы. Попытайся опровергнуть лидирующую версию. Не скрывай недостаток данных. Зафиксированные пользователем признаки считай жёсткими ограничениями.</p>
-        {initial.debugTraceId && <p><b>ID задания:</b> <code>{initial.debugTraceId}</code>. По нему можно найти 24 проверки, итоговый синтез и возможные повторы в Cloudflare Logs.</p>}
+        {initial.debugTraceId && <p><b>ID задания:</b> <code>{initial.debugTraceId}</code>. По нему можно найти проверки и пояснения в журнале задания.</p>}
       </details>
       <details className="tw-all-types">
         <summary>Выбрать свою гипотезу из всех 16 ТИМов</summary>
         <div className="tw-all-types-scroll"><div className="tw-all-types-grid">{Object.entries(TIM_DEFINITIONS).map(([abbr, definition]) => <button key={abbr} className={selectedTim === abbr ? 'is-active' : ''} onClick={() => handleSelectTim(abbr)}><b>{definition.name}</b><span>{abbr}</span></button>)}</div></div>
-        <p>Проценты ниже — уверенность анализа в версии, а не «доля типа» в человеке.</p>
+        <p>Баллы отражают поддержку версии наблюдениями. Это не вероятность типа.</p>
       </details>
       <ResultScreen
         result={legacyResult}

@@ -1,10 +1,11 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
+import { textEndpoint, textRequestBody } from '../cloudflare-worker/providers.js';
 const source=fs.readFileSync(new URL('../cloudflare-worker/worker.js',import.meta.url),'utf8');
 const code=source.slice(source.indexOf('async function callTextModel('),source.indexOf('async function transcribeAudio('));
 let sent,finish='stop';
-const context=vm.createContext({AbortController,setTimeout,clearTimeout,console:{log(){},error(){}},Date,parseJsonResponse:p=>JSON.parse(p.choices[0].message.content),fetch:async(_url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({choices:[{finish_reason:finish,message:{content:'{"ok":true}'}}]})}}});
+const context=vm.createContext({textEndpoint,textRequestBody,AbortController,setTimeout,clearTimeout,console:{log(){},error(){}},Date,parseJsonResponse:p=>JSON.parse(p.choices[0].message.content),fetch:async(_url,options)=>{sent=JSON.parse(options.body);return {ok:true,json:async()=>({choices:[{finish_reason:finish,message:{content:'{"ok":true}'}}]})}}});
 vm.runInContext(code,context);
 const config={provider:'knyazev',baseUrl:'https://test.invalid',key:'fixture',model:'minimax-2.7'};
 await context.callTextModel(config,'test',null,{maxTokens:2400});

@@ -9,6 +9,8 @@
   "triggers": { "crons": ["15 * * * *"] },
   "vars": {
     "INCLUDED_PROVIDER": "knyazev",
+    "DEWIAR_MODEL": "google/gemini-flash-latest",
+    "DEWIAR_BASE_URL": "https://dewiar.com/API/api",
     "JUST_BASE_URL": "https://api.justwoker.icu/v1",
     "JUST_MODEL": "gpt-5.6-luna",
     "KNYAZEV_BASE_URL": "https://knyazevai.work/v1",
@@ -19,7 +21,7 @@
     "QUESTION_MODEL": "minimax-2.7",
     "STORE_DEBUG_PAYLOADS": "false",
     "ALLOW_CUSTOM_BYOK": "true",
-    "LOG_PROMPTS": "true",
+    "LOG_PROMPTS": "false",
     "DEBUG_RETENTION_DAYS": "7"
   },
   "d1_databases": [{

@@ -56,7 +56,7 @@ export const TypistResultCard: React.FC<Props> = ({ session, allSessions, byok, 
       setAnswer(response.answer);
       onQuestionsLeft(byok.mode === 'byok' ? session.questionsLeft : (response.questionsLeft ?? Math.max(0, session.questionsLeft - 1)));
     } catch {
-      setAnswer(`Короткая локальная пояснялка: результат ${result.tim.name} — это гипотеза о привычном способе обрабатывать информацию. Сверяйте её с альтернативами и примерами поведения, а не с красивым описанием.`);
+      setAnswer(`Короткая локальная пояснялка: результат ${result.tim.name} , это гипотеза о привычном способе обрабатывать информацию. Сверяйте её с альтернативами и примерами поведения, а не с красивым описанием.`);
       if (byok.mode !== 'byok') onQuestionsLeft(Math.max(0, session.questionsLeft - 1));
     } finally {
       setAsking(false);
@@ -67,7 +67,7 @@ export const TypistResultCard: React.FC<Props> = ({ session, allSessions, byok, 
     <section className="tw-result">
       {result.randomFallback && (
         <div className="tw-random-fallback" role="alert">
-          <span aria-hidden="true">⚄</span><div><strong>ТИМ не определён — запущен генератор случайности</strong><p>Показанная версия нужна только для открытия интерфейса результата. Она не основана на материале и имеет нулевую диагностическую силу.</p></div>
+          <span aria-hidden="true">⚄</span><div><strong>ТИМ не определён , запущен генератор случайности</strong><p>Показанная версия нужна только для открытия интерфейса результата. Она не основана на материале и имеет нулевую диагностическую силу.</p></div>
         </div>
       )}
       {result.randomFallback && result.originalHypothesis && <details className="tw-result-appendix"><summary>Исходная гипотеза ИИ до случайного выбора</summary><p>{result.originalHypothesis.tim?.name} · {result.originalHypothesis.confidence ?? 0}%</p><p>{result.originalHypothesis.summary}</p></details>}
@@ -90,7 +90,16 @@ export const TypistResultCard: React.FC<Props> = ({ session, allSessions, byok, 
         <button className="tw-ai-ready" onClick={onShowAi}><Bot size={18} /> Показать ответ ИИ</button>
       )}
 
-      <LegacyResultAdapter session={session} allSessions={allSessions} onRestart={onRestart} onReanalyze={onRetry} />
+      <div className="tw-evidence-result" data-testid="evidence-result">
+        <div className="tw-evidence-heading"><div><span>{result.source === 'local' ? 'Предварительные наблюдения' : 'Рабочая гипотеза'}</span><h2>{result.tim.name}</h2></div>{result.tim.abbreviation && <b>{result.tim.abbreviation}</b>}</div>
+        <p>{result.summary}</p>
+        {result.scoring && <p className="tw-evidence-metric">Покрытие признаков: {result.scoring.coverage} из 100. Отрыв ведущей версии: {result.scoring.margin} баллов. Эти числа не показывают вероятность или точность типирования.</p>}
+        {!!result.alternatives.length && <div className="tw-evidence-versions"><span>Версии для сравнения</span>{result.alternatives.map(item => <div key={item.abbreviation}><b>{item.name}</b><span>{item.probability} баллов</span></div>)}</div>}
+        {!!result.observations?.length && <div className="tw-evidence-quotes">{result.observations.map((item, index) => <blockquote key={index}><p>«{item.quote}»</p><footer>{item.observation}</footer></blockquote>)}</div>}
+        {!!result.nextQuestions?.length && <div className="tw-follow-up"><h3>Что поможет уточнить тип</h3><ol>{result.nextQuestions.map(item => <li key={item}>{item}</li>)}</ol><button onClick={onRestart}>Дополнить рассказ</button><small>Откроется ваш текст. Повторный анализ запускается отдельно.</small></div>}
+        {result.confidenceLevel === 'insufficient' && <p>Пока нет оснований показывать персональную Модель А или сравнивать совместимость.</p>}
+      </div>
+      {result.tim.abbreviation && result.confidenceLevel !== 'insufficient' && <LegacyResultAdapter session={session} allSessions={allSessions} onRestart={onRestart} onReanalyze={onRetry} />}
 
       <ProbeArchive probes={result.probeResults} />
       <LogConsole logs={session.clientLogs} name={session.name} />
@@ -104,7 +113,7 @@ export const TypistResultCard: React.FC<Props> = ({ session, allSessions, byok, 
           <span className="tw-kicker">{result.source === 'ai' ? 'ИИ-анализ' : 'Черновой ответ компьютера'}</span>
           <h3>{result.tim.name} <em>{result.tim.abbreviation}</em></h3>
         </div>
-        <div className={`tw-confidence ${level.className}`}><b>{result.confidence}%</b><span>{level.label}</span></div>
+        <div className={`tw-confidence ${level.className}`}><b>{result.confidence}</b><span>{level.label}</span></div>
       </div>
 
       <AnalysisPipeline stages={result.stages} compact />
@@ -155,7 +164,7 @@ export const TypistResultCard: React.FC<Props> = ({ session, allSessions, byok, 
 
         {tab === 'reference' && (
           <div className="tw-reference">
-            <HelpCircle size={24} /><div><h4>Как читать результат</h4><p>ТИМ — основная гипотеза. Проценты показывают уверенность именно этого анализа, а не «сколько в вас типа». Низкая уверенность означает: полезнее добрать примеры, чем спорить с итогом.</p><p>Сначала проверьте четыре базовые шкалы. Затем посмотрите альтернативы и только после этого переходите к признакам Рейнина и отношениям.</p></div>
+            <HelpCircle size={24} /><div><h4>Как читать результат</h4><p>ТИМ обозначает рабочую гипотезу. Баллы показывают поддержку цитатами, а не вероятность типа. Низкая уверенность означает: полезнее добрать примеры, чем спорить с итогом.</p><p>Сначала проверьте четыре базовые шкалы. Затем посмотрите альтернативы и только после этого переходите к признакам Рейнина и отношениям.</p></div>
           </div>
         )}
 

@@ -23,7 +23,7 @@ export const ProbeArchive: React.FC<{ probes?: ProbeResult[] }> = ({ probes = []
     probeId: `empty-${index}`, label: `Проверка ${index + 1}`, status: 'warning', error: 'Ответ не получен'
   } as ProbeResult)), [probes]);
   return <section className="tw-probe-archive">
-    <header><div><b>24 независимые проверки</b><span>Наведите или нажмите на квадрат — откроется сырой JSON ответа.</span></div><small>{probes.filter(item => item.status === 'done').length}/24</small></header>
+    <header><div><b>24 проверяемых признака</b><span>Наведите или нажмите на квадрат - откроется сырой JSON ответа.</span></div><small>{probes.filter(item => item.status === 'done').length}/24</small></header>
     <div className="tw-probe-archive-grid">
       {rows.map((probe, index) => <button
         key={`${probe.probeId}-${index}`}
