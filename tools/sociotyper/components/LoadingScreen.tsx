@@ -220,7 +220,7 @@ const LoadingScreen: React.FC<{ hasAudio?: boolean }> = ({ hasAudio }) => {
         <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-brand-gold/40"></div>
 
         <div className="flex items-center justify-between text-brand-gold/60 text-[10px] uppercase font-bold tracking-widest mb-3.5 border-b border-brand-gold/5 pb-2">
-          <span>— Свиток мудрости —</span>
+          <span> - Свиток мудрости - </span>
           <span className="text-brand-gold/80 font-mono tracking-normal bg-brand-gold/10 px-2.5 py-0.5 rounded border border-brand-gold/25">
             {currentTip.category}
           </span>
@@ -267,7 +267,7 @@ const LoadingScreen: React.FC<{ hasAudio?: boolean }> = ({ hasAudio }) => {
 
       {/* Real Statistics to view while waiting */}
       <div className="w-full mt-12 pt-8 border-t border-brand-gold/15 relative z-10">
-        <h3 className="text-center text-brand-gold font-serif font-bold text-sm mb-4 uppercase tracking-widest">— Живая статистика —</h3>
+        <h3 className="text-center text-brand-gold font-serif font-bold text-sm mb-4 uppercase tracking-widest"> - Живая статистика - </h3>
         <StatsDashboard />
       </div>
       

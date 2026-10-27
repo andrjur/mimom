@@ -8,7 +8,8 @@ http.createServer(async (req, res) => {
  const input = JSON.parse(body || '{}'); requests++;
  const prompt = input.messages?.at(-1)?.content || '';
  let answer;
- if (String(prompt).includes('ЗАДАЧА СИНТЕЗА')) answer = { tim: { abbreviation: 'ИЛЭ', name: 'Дон Кихот' }, summary: 'Тестовый ответ, не реальное типирование.', confidence: 70, confidenceLevel: 'medium', alternatives: [{ abbreviation: 'ЛИИ', name: 'Робеспьер', probability: 35 }], doubts: [], dichotomies: [] };
+ if (String(prompt).includes('ШКАЛЫ: ')) answer = { probes: JSON.parse(prompt.match(/ШКАЛЫ: (.+)\n/)[1]).map(item => ({ probeId: item.id, pole: 'insufficient', confidence: 0, evidence: [], missing: 'Тестовый материал без основания для типирования.' })) };
+ else if (String(prompt).includes('ЗАДАЧА СИНТЕЗА')) answer = { tim: { abbreviation: 'ИЛЭ', name: 'Дон Кихот' }, summary: 'Тестовый ответ, не реальное типирование.', confidence: 70, confidenceLevel: 'medium', alternatives: [{ abbreviation: 'ЛИИ', name: 'Робеспьер', probability: 35 }], doubts: [], dichotomies: [] };
  else answer = { ok: true, pole: 'insufficient', confidence: 0, evidence: [{ quote: 'люблю читать', observation: 'Прямая цитата теста.' }], transcript: 'Тестовая расшифровка: люблю читать', voiceObservations: [] };
  res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(answer) } }], usage: { total_tokens: 10 } }));
 }).listen(8793, '127.0.0.1', () => console.log('Mock provider listening on 8793; no external AI requests'));

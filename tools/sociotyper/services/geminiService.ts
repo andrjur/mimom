@@ -259,7 +259,7 @@ ${dichotomiesList}
 Если есть история чата, учти ее контекст: ${JSON.stringify(chatHistory || [])}
 `;
 
-    return `Ты — профессиональный эксперт по соционике.\n\n${schemaInstruction}\nПроанализируй этот текст:\n${textToAnalyze}`;
+    return `Ты - профессиональный эксперт по соционике.\n\n${schemaInstruction}\nПроанализируй этот текст:\n${textToAnalyze}`;
   };
   const fetchFromProvider = async (config: ProviderConfig): Promise<AnalysisResult> => {
     const prompt = getPromptForProvider(config.provider);

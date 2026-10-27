@@ -22,6 +22,30 @@ type Provider = {
 
 const PROVIDERS: Provider[] = [
   {
+    id: 'dewiar', icon: 'D', name: 'Dewiar', hint: 'Единый счёт Dewiar. По умолчанию используем Flash; модель можно сменить ниже.',
+    keyUrl: 'https://dewiar.com/llm-api', baseUrl: 'https://dewiar.com/API/api', model: 'google/gemini-flash-latest', placeholder: 'DEWIAR-0_…', accent: '#3760a8',
+    screenTitle: 'Dewiar → Универсальный API', createLabel: 'Открыть свой API-ключ',
+    desktop: ['Войдите в свой аккаунт Dewiar.', 'Откройте страницу «API ко всем LLM AI»: после входа там появится ключ.', 'Пополните единый счёт, скопируйте ключ и вставьте ниже.'],
+    phone: ['Войдите в Dewiar и откройте страницу LLM API.', 'Скопируйте свой ключ и проверьте баланс.', 'Вернитесь сюда, вставьте ключ и нажмите «Проверить».'],
+    models: [{ label: 'Gemini Flash', value: 'google/gemini-flash-latest' }, { label: 'Gemini Pro', value: 'google/gemini-pro-latest' }, { label: 'Claude Sonnet 4.6', value: 'anthropic/claude-sonnet-4-6' }]
+  },
+  {
+    id: 'polza', icon: 'P', name: 'Polza.ai', hint: 'Оплата в рублях. Модель и расходы проверяйте в каталоге сервиса.',
+    keyUrl: 'https://polza.ai/dashboard/api-keys', baseUrl: 'https://polza.ai/api/v1', model: 'google/gemini-2.5-flash', placeholder: 'API-ключ Polza', accent: '#3760a8',
+    screenTitle: 'Polza.ai → API Keys', createLabel: 'Создать API-ключ',
+    desktop: ['Войдите в кабинет Polza.ai.', 'Пополните баланс и создайте ключ в разделе API Keys.', 'Скопируйте ключ и выберите доступную модель.'],
+    phone: ['Откройте кабинет Polza.ai.', 'Создайте ключ в разделе API Keys.', 'Вернитесь сюда и вставьте ключ.'],
+    models: []
+  },
+  {
+    id: 'vsegpt', icon: 'V', name: 'VseGPT', hint: 'Доступ по тарифу сервиса плюс оплата генераций. Уточните действующие лимиты в кабинете.',
+    keyUrl: 'https://vsegpt.ru/Docs/API', baseUrl: 'https://api.vsegpt.ru/v1', model: 'openai/gpt-4o-mini', placeholder: 'sk-…', accent: '#3760a8',
+    screenTitle: 'VseGPT → API', createLabel: 'Открыть кабинет',
+    desktop: ['Войдите в VseGPT и проверьте тариф с доступом к API.', 'Скопируйте ключ из кабинета.', 'Вставьте ключ и укажите модель из каталога.'],
+    phone: ['Войдите в VseGPT.', 'Скопируйте API-ключ из кабинета.', 'Вернитесь сюда и вставьте ключ.'],
+    models: []
+  },
+  {
     id: 'just', icon: '✦', name: 'JustDoWork', hint: 'Три недорогие модели для быстрых опытов: Luna, Terra и Sol.',
     keyUrl: 'https://api.justwoker.icu/dashboard/overview', baseUrl: 'https://api.justwoker.icu/v1', model: 'gpt-5.6-luna', placeholder: 'sk-…', accent: '#18b7a5',
     screenTitle: 'JustDoWork → API-ключи', createLabel: 'Создать API-ключ',
@@ -129,7 +153,7 @@ export const ApiSetupSheet: React.FC<Props> = ({ open, value, onChange, onClose 
         baseUrl: value.baseUrl,
         model,
         policy: 'system',
-        omniCapable: /(?:gemini|gpt-4o-audio|omni)/i.test(model),
+        omniCapable: !['dewiar', 'polza', 'vsegpt'].includes(value.provider) && /(?:gemini|gpt-4o-audio|omni)/i.test(model),
         effort: value.effort
       };
       onChange({ ...value, mode: 'byok', model, connections: [...connections.filter(item => !(item.provider === next.provider && item.baseUrl === next.baseUrl)), next] });
@@ -142,7 +166,7 @@ export const ApiSetupSheet: React.FC<Props> = ({ open, value, onChange, onClose 
   };
 
   const shareRequest = async () => {
-    const text = `Можешь поделиться ограниченным API-ключом для НейроТипировщика? Подойдут Knyazev AI, Gemini, OpenAI, Claude, OpenRouter или другой OpenAI-совместимый API. Открыть: ${location.href}`;
+    const text = `Можешь поделиться ограниченным API-ключом для НейроТипировщика? Подойдут Dewiar, Polza.ai, VseGPT или другой совместимый API. Открыть: ${location.href}`;
     try {
       if (navigator.share) await navigator.share({ title: 'Доступ к НейроТипировщику', text });
       else await navigator.clipboard.writeText(text);
@@ -164,7 +188,7 @@ export const ApiSetupSheet: React.FC<Props> = ({ open, value, onChange, onClose 
           <div>
             <span className="tw-kicker">Свой API · без лимита сайта</span>
             <h2>Подключение своего API</h2>
-            <p>Если у вас или у друга есть любой API — Knyazev AI, Gemini, OpenAI, Claude, OpenRouter или совместимый сервис — подключите его за минуту.</p>
+            <p>Подключите свой ключ Dewiar, Polza.ai, VseGPT или другого сервиса. Расходы оплачиваются на вашем счёте у провайдера.</p>
           </div>
           <button className="tw-icon-button" onClick={onClose} aria-label="Закрыть"><X size={20} /></button>
         </div>
@@ -177,7 +201,7 @@ export const ApiSetupSheet: React.FC<Props> = ({ open, value, onChange, onClose 
         {value.mode === 'included' ? (
           <div className="tw-included-card">
             <div className="tw-big-check"><Check size={24} /></div>
-            <div><strong>Ничего настраивать не нужно</strong><p>Первые 4 анализа оплачивает сайт. Нажмите «Анализировать» — запрос уйдёт через защищённый Worker.</p></div>
+            <div><strong>Ничего настраивать не нужно</strong><p>Первые 4 анализа оплачивает сайт. Нажмите «Анализировать» , запрос уйдёт через защищённый Worker.</p></div>
           </div>
         ) : (
           <>
@@ -195,7 +219,7 @@ export const ApiSetupSheet: React.FC<Props> = ({ open, value, onChange, onClose 
                 </select>
                 <button title="Удалить API" onClick={() => removeConnection(connection.id)}><Trash2 size={15} /></button>
               </article>)}
-              <p><b>Всегда</b> — провайдер получает гарантированную долю; <b>Рандом</b> — участвует в жеребьёвке; <b>Система</b> — выбор по доступности и типу задачи.</p>
+              <p><b>Всегда</b> , провайдер получает гарантированную долю; <b>Рандом</b> , участвует в жеребьёвке; <b>Система</b> , выбор по доступности и типу задачи.</p>
             </section>}
 
             <span className="tw-field-label">1. Выберите сервис</span>
@@ -216,15 +240,15 @@ export const ApiSetupSheet: React.FC<Props> = ({ open, value, onChange, onClose 
             {validationText && <p className={`tw-validation ${validation}`}>{validation === 'ok' && <CheckCircle2 size={16} />}{validationText}</p>}
 
             {selected.id === 'knyazev' && <div className="tw-knyazev-mix-note">
-               <strong>Микс включён автоматически</strong>
+               <strong>Компактная проверка</strong>
                <span><i>MiniMax 2.7</i><i>DeepSeek V4 Flash</i><i>Kimi 2.6</i></span>
-              <p>Каждая из 24 проверок получает модель псевдослучайно. На диаграмме будет видно, какая модель обрабатывает каждый квадрат. Итоговый синтез собирает MiniMax 2.7.</p>
+              <p>Проверки собраны в четыре группы. Группы распределяются между подключёнными сервисами; модель каждой группы видна в протоколе.</p>
             </div>}
             {selected.id !== 'knyazev' && selected.models.length > 0 && <div className="tw-model-pills" aria-label="Выбор модели">
               {selected.models.map(model => <button key={model.label} className={value.model === model.value ? 'is-active' : ''} onClick={() => onChange({ ...value, model: model.value })}>{model.label}</button>)}
             </div>}
-            <p className="tw-token-note">Полный режим делает 24 короткие независимые проверки и один итоговый синтез. Запросы идут очередями не быстрее 10 в минуту.</p>
-            <p className="tw-security-note"><ShieldCheck size={17} /> Ключ хранится только в этой вкладке браузера и передаётся через Worker выбранному сервису. Worker не записывает его в отчёт или базу.</p>
+            <p className="tw-token-note">24 проверки сгруппированы в четыре запроса. Пояснение запрашивается отдельно, когда есть подтверждённые цитаты. Лимиты провайдера могут увеличить ожидание.</p>
+            <p className="tw-security-note"><ShieldCheck size={17} /> Ключ хранится в этой вкладке. Для восстановления задания сервер временно сохраняет его в зашифрованном виде, затем удаляет. В отчёт ключ не попадает.</p>
 
             <details className="tw-advanced">
               <summary>Расширенные настройки</summary>

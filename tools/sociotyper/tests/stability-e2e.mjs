@@ -28,8 +28,12 @@ while (Date.now() < deadline) {
   assert.equal(done.size, 25);
   assert.equal(data.result.probeResults.length, 24);
   assert.equal(data.result.probeResults[0].confidence, 0);
-  assert.equal(models.size, 3);
-  console.log('PASS: 24 probes + synthesis, 3 models, zero confidence preserved, owner isolation, idempotent credit');
+  assert.equal(models.size, 1);
+  assert.equal(data.result.result.tim.abbreviation, '');
+  assert.equal(data.result.result.randomFallback, false);
+  assert.equal(data.result.result.jev.status, 'skipped');
+  assert.equal(data.result.requestPlan.bonusRequests, 0);
+  console.log('PASS: 24 grouped probes, no random type, zero confidence preserved, owner isolation, idempotent credit');
   break;
  }
  await new Promise(resolve => setTimeout(resolve, 2000));

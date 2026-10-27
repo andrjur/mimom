@@ -42,7 +42,7 @@ export function normalizeRemoteResult(payloadInput: unknown): TypistResult {
   });
   const byName = new Map(finalDichotomies.map(item => [item.name, item]));
   const probeDichotomies: TypistDichotomy[] = probeResults.filter(item => item.probeId?.startsWith('reinin-')).map(item => {
-    const quotes = Array.isArray(item.evidence) ? item.evidence.map(row => row?.quote ? `«${row.quote}»${row.observation ? ` — ${row.observation}` : ''}` : row?.observation || '').filter(Boolean) : [];
+    const quotes = Array.isArray(item.evidence) ? item.evidence.map(row => row?.quote ? `«${row.quote}»${row.observation ? ` , ${row.observation}` : ''}` : row?.observation || '').filter(Boolean) : [];
     return {
       name: String(item.label || item.probeId),
       result: String(item.pole || 'Недостаточно данных'),
@@ -53,14 +53,14 @@ export function normalizeRemoteResult(payloadInput: unknown): TypistResult {
   probeDichotomies.forEach(item => byName.set(item.name, { ...byName.get(item.name), ...item }));
   const quadraProbe = probeResults.find(item => item.probeId === 'quadra-spirit');
   if (quadraProbe) {
-    const quote = Array.isArray(quadraProbe.evidence) ? quadraProbe.evidence.map(row => row?.quote ? `«${row.quote}»${row.observation ? ` — ${row.observation}` : ''}` : row?.observation || '').filter(Boolean).join(' · ') : '';
+    const quote = Array.isArray(quadraProbe.evidence) ? quadraProbe.evidence.map(row => row?.quote ? `«${row.quote}»${row.observation ? ` , ${row.observation}` : ''}` : row?.observation || '').filter(Boolean).join(' · ') : '';
     byName.set('Дух квадры', { name: 'Дух квадры', result: String(quadraProbe.leading || 'Недостаточно данных'), confidence: normalizeConfidence(quadraProbe.confidence), evidence: quote || String(quadraProbe.error || 'Прямая цитата не получена.') });
   }
 
   return {
     source: 'ai',
     tim: {
-      abbreviation: String(timValue.abbreviation || (typeof value.tim === 'string' ? value.tim : '') || '—'),
+      abbreviation: String(timValue.abbreviation || (typeof value.tim === 'string' ? value.tim : '') || ''),
       name: String(timValue.name || value.name || 'Тип не определён')
     },
     summary: String(value?.summary || 'ИИ вернул результат без краткого резюме.'),
@@ -69,7 +69,7 @@ export function normalizeRemoteResult(payloadInput: unknown): TypistResult {
     alternatives: (Array.isArray(value.alternatives) ? value.alternatives : []).slice(0, 3).map(itemInput => {
       const item = record(itemInput);
       return ({
-      abbreviation: String(item.abbreviation || item.tim || '—'),
+      abbreviation: String(item.abbreviation || item.tim || ','),
       name: String(item.name || 'Альтернатива'),
       probability: normalizeConfidence(item.probability ?? item.confidence ?? 0),
       reason: String(item.reason || '')
@@ -94,6 +94,10 @@ export function normalizeRemoteResult(payloadInput: unknown): TypistResult {
     debugTraceId: String(payload.traceId || value.debugTraceId || '') || undefined,
     probeResults,
     originalHypothesis: payload.originalHypothesis as TypistResult['originalHypothesis'],
+    nextQuestions: Array.isArray(value.nextQuestions) ? value.nextQuestions.map(String).slice(0, 3) : [],
+    observations: Array.isArray(value.observations) ? value.observations.map(item => ({ quote: String(record(item).quote || ''), observation: String(record(item).observation || '') })) : [],
+    scoring: value.scoring as TypistResult['scoring'],
+    jev: value.jev as TypistResult['jev'],
     quadra: value.quadra ? { name: String(record(value.quadra).name || ''), confidence: normalizeConfidence(record(value.quadra).confidence), evidence: String(record(value.quadra).evidence || '') } : undefined
   };
 }
