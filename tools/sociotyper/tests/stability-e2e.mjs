@@ -31,6 +31,8 @@ while (Date.now() < deadline) {
   assert.equal(models.size, 1);
   assert.equal(data.result.result.tim.abbreviation, '');
   assert.equal(data.result.result.randomFallback, false);
+  assert.equal(data.result.result.jev.status, 'skipped');
+  assert.equal(data.result.requestPlan.bonusRequests, 0);
   console.log('PASS: 24 grouped probes, no random type, zero confidence preserved, owner isolation, idempotent credit');
   break;
  }

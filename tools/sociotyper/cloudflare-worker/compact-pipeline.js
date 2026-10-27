@@ -1,6 +1,7 @@
 import { TIM_DEFINITIONS } from './tim-definitions.js';
+import { compareJev } from './jev-bonus.js';
 
-export const PIPELINE_VERSION = 'evidence-2';
+export const PIPELINE_VERSION = 'evidence-3-jev';
 const clean = value => String(value || '').replace(/\u2014/g, ',').slice(0, 1200);
 const percent = value => Number.isFinite(Number(value)) ? Math.max(0, Math.min(100, Number(value))) : 0;
 const canonical = name => String(name).split(' / ').sort().join(' / ');
@@ -121,12 +122,14 @@ confidence целое 0-100: 0 нет данных, 50 неясно, выше 50
 }
 
 // Four extraction requests retain all 24 fields. No source text is sent to the final writer.
-export async function runCompactPipeline({ env, providers, text, audioContext, locks, definitions, diagnostics, callModel, chooseProvider, claimSlot, emit }) {
+export async function runCompactPipeline({ env, providers, text, audioContext, locks, definitions, diagnostics, callModel, chooseProvider, claimSlot, emit, bonus }) {
   const material = [text, audioContext].filter(Boolean).join('\n\n');
   const traits = definitions.filter(item => item.kind === 'reinin');
   const groups = [traits.slice(0, 5), traits.slice(5, 10), traits.slice(10), definitions.filter(item => item.kind !== 'reinin')];
   const meta = stage => ({ traceId: diagnostics.traceId, fullLog: diagnostics.fullLog, stage, env, jobId: diagnostics.jobId });
   const runStep = (name, action) => diagnostics.step ? diagnostics.step.do(name, { retries: { limit: 0, delay: '1 second' }, timeout: '10 minutes' }, action) : action();
+  // Start the optional decision model before the extraction packs; it receives no main result.
+  const bonusTask = bonus ? runStep('jev-bonus', bonus).then(value => ({ value }), error => ({ error })) : Promise.resolve({ value: null });
   const results = await Promise.all(groups.map((group, index) => runStep(`extract-pack-${index + 1}`, async () => {
     const provider = chooseProvider(providers, diagnostics.mixSeed || diagnostics.traceId, group[0].id);
     const model = provider.shared && env.EXTRACTION_MODEL ? env.EXTRACTION_MODEL : provider.model;
@@ -174,5 +177,8 @@ export async function runCompactPipeline({ env, providers, text, audioContext, l
   }
   const finalStage = { id: 'final', label: 'Сравнение версий и вопросы', status: reportStatus, model: finalModel, rawResponse: result };
   await emit(env, diagnostics.jobId, { event: 'probe.status', stage: finalStage });
-  return { result, probeResults: probes, stages: [...probes.map(item => ({ id: item.probeId, label: item.label, status: item.status, model: item.model, provider: item.provider, rawResponse: item })), finalStage], providerUsed: providers.map(item => item.label || item.provider).join(' + '), requestPlan: { version: PIPELINE_VERSION, probes: 24, extractionRequests: 4, maxTextRequests: 5, fallbackAfterSeconds: 60 } };
+  const bonusOutcome = await bonusTask;
+  if (bonusOutcome.error?.message === 'JOB_CANCELLED') throw bonusOutcome.error;
+  if (bonus) result.jev = compareJev(bonusOutcome.value || { status: 'unavailable', reason: 'JEV_REQUEST_FAILED' }, probes);
+  return { result, probeResults: probes, stages: [...probes.map(item => ({ id: item.probeId, label: item.label, status: item.status, model: item.model, provider: item.provider, rawResponse: item })), finalStage], providerUsed: providers.map(item => item.label || item.provider).join(' + '), requestPlan: { version: PIPELINE_VERSION, probes: 24, extractionRequests: 4, maxTextRequests: 5, bonusRequests: bonus && result.jev?.status !== 'skipped' ? 1 : 0, fallbackAfterSeconds: 60 } };
 }

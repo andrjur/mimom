@@ -1,4 +1,5 @@
 import { resolveProvider, includedReady, textEndpoint, textRequestBody } from './providers.js';
+import { runJevBonus, resolveJevConfig } from './jev-bonus.js';
 import { runCompactPipeline, PIPELINE_VERSION } from './compact-pipeline.js';
 import { EmailMessage } from 'cloudflare:email';
 import { WorkflowEntrypoint } from 'cloudflare:workers';
@@ -272,7 +273,8 @@ function chooseProvider(providers, seed, probeId) {
 
 async function runPipeline(env, providers, text, audioContext, lockedDichotomies = {}, lockedPsychosophy = {}, preferredTim = '', diagnostics = {}) {
   return runCompactPipeline({ env, providers, text, audioContext, locks: lockedDichotomies, definitions: ALL_PROBES, diagnostics,
-    callModel: callTextModel, chooseProvider, claimSlot: claimSharedProviderSlot, emit: emitJob });
+    callModel: callTextModel, chooseProvider, claimSlot: claimSharedProviderSlot, emit: emitJob,
+    bonus: () => runJevBonus({ env, byok: diagnostics.byok || {}, material: [text, audioContext].filter(Boolean).join('\n\n'), definitions: ALL_PROBES, emit: entry => emitJob(env, diagnostics.jobId, entry) }) });
 }
 
 async function saveDebug(env, input, visitorId, ctx) {
@@ -364,7 +366,7 @@ async function handleAnalyze(request, env, visitor, ctx) {
   let pipeline = await runPipeline(
     env, providers, String(input.text || ''), audioContext,
     input.lockedDichotomies || {}, input.lockedPsychosophy || {}, input.preferredTim || '',
-    { traceId, mixSeed: cleanId(input.sessionId) || traceId, fullLog: Boolean(input.debugConsent) }
+    { traceId, mixSeed: cleanId(input.sessionId) || traceId, fullLog: Boolean(input.debugConsent), byok: input.byok || {} }
   );
   pipeline.result.randomFallback = false;
   await finishDebugCopy(env, debugCopy, pipeline, audioContext);
@@ -423,7 +425,7 @@ export class TypistWorkflow extends WorkflowEntrypoint {
         await env.DB.prepare("UPDATE analysis_jobs SET status = 'running' WHERE id = ? AND status = 'queued'").bind(id).run();
         await emitJob(env, id, { event: 'analysis.start', traceId: id, promptVersion: PIPELINE_VERSION, textChars: input.text.length, audioContext: input.audioContext || '' });
       });
-      const pipeline = await runPipeline(env, resolveProviders(env, input.byok), input.text, input.audioContext || '', input.lockedDichotomies, input.lockedPsychosophy, input.preferredTim, { step, jobId: id, traceId: id, mixSeed: id, fullLog: Boolean(input.debugConsent) });
+      const pipeline = await runPipeline(env, resolveProviders(env, input.byok), input.text, input.audioContext || '', input.lockedDichotomies, input.lockedPsychosophy, input.preferredTim, { step, jobId: id, traceId: id, mixSeed: id, fullLog: Boolean(input.debugConsent), byok: input.byok || {} });
       const result = pipeline;
       result.traceId = id;
       await step.do('complete', async () => {
@@ -486,7 +488,7 @@ export default {
     const cookie = visitor.fresh ? `nid=${encodeURIComponent(visitor.id)}; Path=/; Max-Age=31536000; Secure; SameSite=Lax; HttpOnly` : '';
     try {
       let response;
-      if (url.pathname.endsWith('/health') && request.method === 'GET') response = json({ ok: true, release: PIPELINE_VERSION, storage: Boolean(env.DB), debugStorage: Boolean(env.DEBUG_BUCKET), omni: Boolean(env.OMNI_API_KEY), includedProvider: String(env.INCLUDED_PROVIDER || 'knyazev'), includedReady: includedReady(env), jobsReady: Boolean(env.TYPIST_WORKFLOW && env.JOB_ENCRYPTION_KEY) });
+      if (url.pathname.endsWith('/health') && request.method === 'GET') response = json({ ok: true, release: PIPELINE_VERSION, storage: Boolean(env.DB), debugStorage: Boolean(env.DEBUG_BUCKET), omni: Boolean(env.OMNI_API_KEY), includedProvider: String(env.INCLUDED_PROVIDER || 'knyazev'), includedReady: includedReady(env), jevReady: Boolean(resolveJevConfig(env)), jobsReady: Boolean(env.TYPIST_WORKFLOW && env.JOB_ENCRYPTION_KEY) });
       else if (url.pathname.endsWith('/jobs') && request.method === 'POST') response = await createJob(request, env, visitor);
       else if (/\/jobs\/[a-zA-Z0-9_-]+$/.test(url.pathname)) {
         const id = url.pathname.split('/').pop();

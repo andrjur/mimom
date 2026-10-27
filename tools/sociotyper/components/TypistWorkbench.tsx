@@ -1,3 +1,4 @@
+import { JevBonusSettings } from './JevBonus';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Archive, AudioLines, CheckCircle2, ChevronDown, ChevronUp, CircleHelp, Clock3, CreditCard, FileAudio, FileText, KeyRound, LoaderCircle, Mic, Plus, ShieldCheck, Sparkles, Square, Trash2, UploadCloud, Users, WandSparkles, X } from 'lucide-react';
 import { QUESTIONS } from '../constants';
@@ -271,6 +272,7 @@ const WaitingCard: React.FC<{ session: PersonSession; onCancel: () => void; tran
   const definitions = [...REININ_GUIDE.map(item => ({ id: item.id, label: item.title })), { id: 'quadra-spirit', label: 'Дух квадры' }, ...ASPECT_GUIDE.map(item => ({ id: item.id, label: item.name }))];
   const stages: PipelineStage[] = definitions.map(item => session.liveStages?.find(stage => stage.id === item.id) || { ...item, status: 'waiting', note: 'Ожидает назначения сервером' });
   const final = session.liveStages?.find(stage => stage.id === 'final');
+  const jevStage = session.liveStages?.find(stage => stage.id === 'jev-bonus');
   const done = stages.filter(stage => stage.status === 'done').length;
   const failed = stages.filter(stage => stage.status === 'warning').length;
   const percent = Math.round((done + failed + (final?.status === 'done' ? 1 : 0)) / 25 * 100);
@@ -283,6 +285,7 @@ const WaitingCard: React.FC<{ session: PersonSession; onCancel: () => void; tran
     <div className="tw-model-mix">{models.map(model => <span key={model}><b>{model}</b><small>{stages.filter(stage => stage.model === model).length} проверок</small></span>)}</div>
     <AnalysisPipeline stages={stages} compact />
     <AnalysisPipeline stages={[final || { id: 'final', label: 'Синтез и критик', status: 'waiting', note: 'Ожидает ответы проверок' }]} />
+    {jevStage && <AnalysisPipeline stages={[jevStage]} />}
     <p>Можно обновить страницу: задание и его результаты доступны в этом браузере в течение суток. Через минуту появятся локальные наблюдения, если ИИ ещё работает.</p>
     <WisdomScroll compact index={wisdomIndex} onIndex={setWisdomIndex} />
     <LogConsole logs={session.clientLogs} name={session.name} />
@@ -357,7 +360,7 @@ export const TypistWorkbench: React.FC = () => {
   useEffect(() => { try { localStorage.setItem('indikov-typist-persona', JSON.stringify(persona)); } catch { /* приватный режим */ } }, [persona]);
   useEffect(() => {
     try {
-      if (byok.mode === 'byok' && byok.key) sessionStorage.setItem('indikov-typist-byok', JSON.stringify(byok));
+      if ((byok.mode === 'byok' && byok.key) || byok.jev?.key) sessionStorage.setItem('indikov-typist-byok', JSON.stringify(byok));
       else sessionStorage.removeItem('indikov-typist-byok');
     } catch { /* приватный режим браузера */ }
   }, [byok]);
@@ -584,6 +587,7 @@ export const TypistWorkbench: React.FC = () => {
       </div>
 
       <QuickApiConnect value={byok} onChange={setByok} onAdvanced={() => setApiOpen(true)} />
+      <JevBonusSettings value={byok} onChange={setByok} />
 
       <PersonaStudio value={persona} onChange={setPersona} />
 

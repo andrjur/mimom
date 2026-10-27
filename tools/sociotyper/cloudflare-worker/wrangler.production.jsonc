@@ -9,6 +9,8 @@
   "triggers": { "crons": ["15 * * * *"] },
   "vars": {
     "INCLUDED_PROVIDER": "knyazev",
+    "JEV_ENABLED": "true",
+    "JEV_TIMEOUT_MS": "12000",
     "DEWIAR_MODEL": "google/gemini-flash-latest",
     "DEWIAR_BASE_URL": "https://dewiar.com/API/api",
     "JUST_BASE_URL": "https://api.justwoker.icu/v1",

@@ -60,6 +60,18 @@ export interface TypistResult {
   stages: PipelineStage[];
   createdAt: string;
   providerUsed?: string;
+  jev?: {
+    status: 'done' | 'skipped' | 'unavailable';
+    reason?: string;
+    provider?: string;
+    model?: string;
+    payment?: 'site' | 'personal';
+    hasExamples?: number;
+    costRub?: number;
+    inputTokens?: number;
+    agreement?: { agree: number; disagree: number; unresolved: number };
+    rows?: Array<{ probeId: string; label: string; pole: string; mainPole?: string; confidence: number; comparison?: 'agree' | 'disagree' | 'unresolved'; probabilities?: Record<string, number> }>;
+  };
   nextQuestions?: string[];
   observations?: Array<{ quote: string; observation: string }>;
   scoring?: { version: string; coverage: number; margin: number; resolved: boolean; metric: string; ranked: Array<{ abbreviation: string; name: string; score: number }> };
@@ -126,6 +138,7 @@ export interface ByokSettings {
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
   connections?: ApiConnection[];
   omniEnabled?: boolean;
+  jev?: { enabled?: boolean; key?: string };
 }
 
 export type PersonaMode = 'kind' | 'troll' | 'dry' | 'custom';

@@ -97,6 +97,7 @@ export function normalizeRemoteResult(payloadInput: unknown): TypistResult {
     nextQuestions: Array.isArray(value.nextQuestions) ? value.nextQuestions.map(String).slice(0, 3) : [],
     observations: Array.isArray(value.observations) ? value.observations.map(item => ({ quote: String(record(item).quote || ''), observation: String(record(item).observation || '') })) : [],
     scoring: value.scoring as TypistResult['scoring'],
+    jev: value.jev as TypistResult['jev'],
     quadra: value.quadra ? { name: String(record(value.quadra).name || ''), confidence: normalizeConfidence(record(value.quadra).confidence), evidence: String(record(value.quadra).evidence || '') } : undefined
   };
 }

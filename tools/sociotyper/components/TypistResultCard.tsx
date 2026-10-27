@@ -7,6 +7,7 @@ import { downloadSessionArchive } from '../services/archiveService';
 import { AnalysisPipeline } from './AnalysisPipeline';
 import { LegacyResultAdapter } from './LegacyResultAdapter';
 import { LogConsole, ProbeArchive } from './TypistDiagnostics';
+import { JevBonusResult } from './JevBonus';
 
 const LEVELS = {
   insufficient: { label: 'Данных недостаточно', className: 'insufficient' },
@@ -101,6 +102,7 @@ export const TypistResultCard: React.FC<Props> = ({ session, allSessions, byok, 
       </div>
       {result.tim.abbreviation && result.confidenceLevel !== 'insufficient' && <LegacyResultAdapter session={session} allSessions={allSessions} onRestart={onRestart} onReanalyze={onRetry} />}
 
+      <JevBonusResult result={result.jev} />
       <ProbeArchive probes={result.probeResults} />
       <LogConsole logs={session.clientLogs} name={session.name} />
 
