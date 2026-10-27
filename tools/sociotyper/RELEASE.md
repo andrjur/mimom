@@ -16,4 +16,6 @@ Jev bonus, added 27 October: one parallel `systemone` request through Polza.ai c
 
 Verified locally: regression suite, all 16 table roundtrips, TypeScript, client build, production Worker dry run, Workflow/D1 owner isolation, idempotent charge and cancellation refund. Browser checks use a fictional local fixture and mock provider. Live Dewiar billing and real-person quality remain unverified.
 
-Cloudflare CLI authentication was expired during preparation. Production deployment awaits refreshed login. Do not merge the paired static build until the Worker is deployed and verified.
+Production Worker deployed on 27 October 2026 as version `604d0f28-1df3-42ea-9815-fafb3889af11`. Health confirms `release: evidence-3-jev` and `jobsReady: true`. Previous Worker version for rollback: `19d2b5b1-be0f-4b92-ae62-2ceea329feff`. The static client is published by GitHub Pages after the paired change reaches `main`.
+
+The server has no Polza/Jev secret yet, so `jevReady: false` is expected. Visitors can supply their own Polza key; enabling the bonus for all visitors requires `JEV_API_KEY`. No successful paid Jev or Dewiar call has been verified.
