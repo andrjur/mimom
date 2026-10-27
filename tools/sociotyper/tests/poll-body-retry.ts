@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { pollAnalysis } from '../services/typistApi';
+import { isMissingAnalysisJob, pollAnalysis, TypistApiError } from '../services/typistApi';
 
 const originalFetch=globalThis.fetch;
 const urls:string[]=[];
@@ -27,5 +27,19 @@ try {
   }) as typeof fetch;
   await assert.rejects(()=>pollAnalysis('cancelled-job',controller.signal),{name:'AbortError'});
   assert.equal(calls,1,'Explicit cancellation must not retry');
-  console.log('PASS: body timeout retries with preserved cursor; cancellation stops immediately');
+  let missingCalls = 0;
+  globalThis.fetch = (async () => {
+    missingCalls++;
+    return { ok: false, status: 404, json: async () => ({ error: 'JOB_NOT_FOUND', message: 'Expired job' }) } as Response;
+  }) as typeof fetch;
+  await assert.rejects(() => pollAnalysis('expired-job'), error => {
+    assert.ok(error instanceof TypistApiError);
+    assert.equal(isMissingAnalysisJob(error), true, 'Only a confirmed missing job can stop automatic restoration');
+    return true;
+  });
+  assert.equal(missingCalls, 1, 'Missing jobs are not retried by the poller');
+  assert.equal(isMissingAnalysisJob(new Error('JOB_NOT_FOUND')), false, 'An untyped network error must keep its job reference');
+  assert.equal(isMissingAnalysisJob(new TypistApiError('Rate limit', 429, 'RATE_LIMITED')), false);
+  assert.equal(isMissingAnalysisJob(new TypistApiError('Different resource', 404, 'OTHER_RESOURCE')), false);
+  console.log('PASS: body timeout preserves cursor; cancellation stops; missing jobs are identified separately from recoverable errors');
 } finally { globalThis.fetch=originalFetch; }

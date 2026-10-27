@@ -5,7 +5,7 @@ import { QUESTIONS } from '../constants';
 import { INTERTYPE_RELATIONS_DATA, RELATION_METADATA } from './relations';
 import type { ApiConnection, ByokSettings, PersonSession, PipelineStage, StoredAudio, TypistPersona } from '../typistTypes';
 import { runLocalTypist } from '../services/localTypist';
-import { cancelJob, pollAnalysis, fileToBase64, getUsageStatus, redeemAccessCode, requestAnalysis, validateByok } from '../services/typistApi';
+import { cancelJob, pollAnalysis, fileToBase64, getUsageStatus, isMissingAnalysisJob, redeemAccessCode, requestAnalysis, validateByok } from '../services/typistApi';
 import { deleteAudio, loadSessions, restoreSessions, saveAudio, saveSessions } from '../services/sessionStorage';
 import { ApiSetupSheet } from './ApiSetupSheet';
 import { AnalysisPipeline } from './AnalysisPipeline';
@@ -420,7 +420,13 @@ export const TypistWorkbench: React.FC = () => {
       pollAnalysis(session.jobId, controller.signal, entry => appendLog(session.id, entry)).then(response => {
         update(session.id, { result: response.result, aiResult: response.result, status: 'ai-ready', error: undefined });
       }).catch(error => {
-        if (!controller.signal.aborted) update(session.id, { status: 'draft', error: `Не удалось восстановить задание: ${error instanceof Error ? error.message : String(error)}` });
+        if (controller.signal.aborted) return;
+        if (isMissingAnalysisJob(error)) {
+          appendLog(session.id, { event: 'analysis.restore.unavailable', jobId: session.jobId });
+          update(session.id, { status: 'draft', jobId: undefined, error: 'Задание больше недоступно. Ваш рассказ сохранён, можно запустить новый анализ.' });
+        } else {
+          update(session.id, { status: 'draft', error: `Не удалось восстановить задание: ${error instanceof Error ? error.message : String(error)}` });
+        }
       }).finally(() => {
         clearTimeout(fallbackTimers.current[session.id]);
         setBackgroundAi(current => ({ ...current, [session.id]: false }));

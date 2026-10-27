@@ -25,6 +25,7 @@ assert.equal(unknown.tim.abbreviation, '');
 assert.equal(unknown.confidence, 0);
 assert.equal(unknown.alternatives.length, 0);
 assert.equal(unknown.randomFallback, false);
+assert.equal(unknown.observations.length, 0, 'Missing evidence cannot create a fallback quote');
 assert.ok(unknown.nextQuestions.length);
 const neutral = observations('ИЛЭ').map(item => ({ ...item, confidence: 50 }));
 assert.equal(rankTypes(neutral, definitions).coverage, 0, '50 is neutral');
@@ -38,7 +39,10 @@ assert.ok(locked.ranked.every(row => TIM_DEFINITIONS[row.abbreviation]['Экст
 assert.equal(rankTypes([], definitions, { 'Экстраверсия / Интроверсия': 'Интроверсия' }).resolved, false, 'locks do not create evidence');
 const report = buildScoredResult(observations('ИЛЭ'), definitions, {}, { tim: { abbreviation: 'СЭЭ' }, observations: [{ quote: 'Придуманная цитата', observation: 'Нет' }] });
 assert.equal(report.tim.abbreviation, 'ИЛЭ', 'writer cannot rerank');
-assert.equal(report.observations.length, 0);
+assert.equal(report.observations.length, 4, 'Unsupported writer quotes fall back to verified excerpts');
+assert.ok(report.observations.every(item => material.includes(item.quote)));
+assert.equal(report.observations.some(item => item.quote === 'Придуманная цитата'), false);
+assert.equal(buildScoredResult(reused, definitions).observations.length, 1, 'The same fallback quote is shown only once');
 
 const dewiar = resolveProvider({}, { mode: 'byok', provider: 'dewiar', key: 'fixture-dewiar-key' });
 assert.equal(textEndpoint(dewiar), 'https://dewiar.com/API/api');
@@ -74,6 +78,8 @@ assert.equal(events.filter(item => item.stage?.status === 'done').length, 25);
 failReport = true;
 pipeline = await run();
 assert.equal(pipeline.result.tim.abbreviation, 'ИЛЭ', 'failed writer preserves computed result');
+assert.equal(pipeline.result.observations.length, 4, 'Failed writer keeps verified excerpts visible');
+assert.ok(pipeline.result.observations.every(item => material.includes(item.quote)));
 assert.equal(pipeline.stages.at(-1).status, 'warning');
 failGroup = true;
 pipeline = await run();

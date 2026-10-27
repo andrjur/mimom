@@ -19,3 +19,5 @@ Verified locally: regression suite, all 16 table roundtrips, TypeScript, client 
 Production Worker deployed on 27 October 2026 as version `604d0f28-1df3-42ea-9815-fafb3889af11`. Health confirms `release: evidence-3-jev` and `jobsReady: true`. Previous Worker version for rollback: `19d2b5b1-be0f-4b92-ae62-2ceea329feff`. The static client is published by GitHub Pages after the paired change reaches `main`.
 
 The server has no Polza/Jev secret yet, so `jevReady: false` is expected. Visitors can supply their own Polza key; enabling the bonus for all visitors requires `JEV_API_KEY`. No successful paid Jev or Dewiar call has been verified.
+
+Recovery patch: a confirmed `JOB_NOT_FOUND` clears only the obsolete job reference and preserves the participant's text. Network errors keep the reference available for another restoration attempt. Verified excerpts are shown even when the optional explanation request fails or returns unsupported quotes; duplicate excerpts are shown once. The patch adds no model requests and keeps the same scoring.

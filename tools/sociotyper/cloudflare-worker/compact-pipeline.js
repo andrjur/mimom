@@ -97,6 +97,15 @@ export function buildScoredResult(probes, definitions, locks = {}, report = {}) 
   const supportedQuotes = new Set(probes.flatMap(item => item.evidence || []).filter(item => item.quoteVerified).map(item => item.quote));
   const cited = (Array.isArray(report.observations) ? report.observations : []).filter(item => supportedQuotes.has(item?.quote)).slice(0, 4);
   const observations = cited.map(item => ({ quote: item.quote, observation: clean(item.observation) }));
+  // Verified excerpts remain visible when the optional writer fails or returns unsupported quotes.
+  if (!observations.length) {
+    const seen = new Set();
+    for (const probe of probes) for (const row of probe.evidence || []) {
+      if (!row.quoteVerified || seen.has(row.quote) || observations.length >= 4) continue;
+      seen.add(row.quote);
+      observations.push({ quote: row.quote, observation: `Основание для проверки «${probe.label}». Один эпизод не определяет тип.` });
+    }
+  }
   const reportDoubts = (Array.isArray(report.doubts) ? report.doubts : []).slice(0, 3).map(clean);
   return {
     tim: scoring.resolved ? { abbreviation: leader.abbreviation, name: leader.name } : { abbreviation: '', name: scoring.coverage ? 'Пока несколько версий' : 'Пока недостаточно данных' },

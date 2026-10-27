@@ -2,6 +2,15 @@ import type { ByokSettings, PipelineStage, ProbeResult, TypistDichotomy, TypistP
 
 export const DEFAULT_API_BASE = (import.meta as ImportMeta & { env?: { VITE_TYPIST_API_BASE?: string } }).env?.VITE_TYPIST_API_BASE || '/api/typist';
 
+export class TypistApiError extends Error {
+  constructor(message: string, readonly status: number, readonly code: string) {
+    super(message);
+    this.name = 'TypistApiError';
+  }
+}
+
+export const isMissingAnalysisJob = (error: unknown) => error instanceof TypistApiError && error.status === 404 && error.code === 'JOB_NOT_FOUND';
+
 type JsonRecord = Record<string, unknown>;
 const record = (value: unknown): JsonRecord => value && typeof value === 'object' ? value as JsonRecord : {};
 
@@ -171,7 +180,7 @@ export async function pollAnalysis(id: string, signal?: AbortSignal, onLog?: (en
       await new Promise(resolve => setTimeout(resolve, 2000));
       continue;
     }
-    if (!response.ok) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+    if (!response.ok) throw new TypistApiError(String(payload.message || payload.error || `HTTP ${response.status}`), response.status, String(payload.error || ''));
     for (const entry of payload.events || []) onLog?.(entry);
     cursor = Number(payload.cursor) || cursor;
     if (payload.hasMore) continue;
