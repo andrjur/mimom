@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {build} from 'esbuild';
+const source=path.dirname(fileURLToPath(import.meta.url));
+const output=path.resolve(source,'../../image-lab');
+fs.mkdirSync(output,{recursive:true});
+await build({entryPoints:[path.join(source,'src/app.js')],bundle:true,minify:true,platform:'browser',target:['es2022'],outfile:path.join(output,'lab.js'),legalComments:'linked'});
+fs.copyFileSync(path.join(source,'src/lab.css'),path.join(output,'lab.css'));
+console.log('Built image lab. Model weights remain under image-lab/model/.');
