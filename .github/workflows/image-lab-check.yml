@@ -1,0 +1,26 @@
+name: Image lab checks
+on:
+  push:
+    paths: ['image-lab/**', 'tools/image-lab/**', 'tools/marketing-site/components/ImageLab.js', 'tools/marketing-site/scripts/render.jsx', '.github/workflows/image-lab-check.yml']
+  pull_request:
+    paths: ['image-lab/**', 'tools/image-lab/**', 'tools/marketing-site/components/ImageLab.js', 'tools/marketing-site/scripts/render.jsx', '.github/workflows/image-lab-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  image-lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/image-lab/package-lock.json
+      - run: npm ci
+        working-directory: tools/image-lab
+      - run: npm test
+        working-directory: tools/image-lab
+      - run: npm run build
+        working-directory: tools/image-lab
+      - run: node tools/image-lab/check-page.mjs

@@ -1,0 +1,26 @@
+{
+  "source": "https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json",
+  "architecture": "MobileNet V2 1.0 224",
+  "files": [
+    {
+      "file": "group1-shard1of4",
+      "bytes": 4194304,
+      "sha256": "b837ab72b76b59e217750e0afed94b8f877fce7fff71b8d9cead71fc11612d8c"
+    },
+    {
+      "file": "group1-shard2of4",
+      "bytes": 4194304,
+      "sha256": "4b9b02a59ecfea1a698a576f1400e876170ef78abe0e06b16195ebfe2983f6d5"
+    },
+    {
+      "file": "group1-shard3of4",
+      "bytes": 4194304,
+      "sha256": "fab6533531d17b78ad67223c82d9a452263ccc4d309a20db91a5de3714aa6a00"
+    },
+    {
+      "file": "group1-shard4of4",
+      "bytes": 1402028,
+      "sha256": "617fd3639ac5cfb94a971bef032fcdfa7690816d524117f54a9cc693d0b2c5f4"
+    }
+  ]
+}
