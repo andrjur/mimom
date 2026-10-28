@@ -45,3 +45,13 @@ for(const review of reviews){
   assert.ok(Object.keys(review).every(key=>['id','status','publicationConsent','date','text','name'].includes(key)),'Do not publish contacts, private notes or pending feedback');
 }
 console.log('Passed: review draft stays local; publication opt-in defaults off; no fake send confirmation; approved-only public reviews; separate practice and support QR targets.');
+const stories=read('one-layer/stories/index.html');
+assert.ok(html.includes('href="/one-layer/stories/"'),'Practice should link to the story series');
+assert.equal((stories.match(/class="storyFiction"/g)||[]).length,10,'Every fictional story must be labelled');
+assert.ok(stories.includes('не отзывы клиентов')||stories.includes('не отзывы клиентов или'),'Story framing must distinguish fiction from client evidence');
+assert.ok(stories.includes('href="/one-layer/#practice"')&&stories.includes('href="/audit/"'),'Both the free practice and personal-work conditions must remain reachable');
+assert.ok(stories.includes('src="trial.js"'),'New story script must load from this release, not an old pinned CDN commit');
+const trial=read('one-layer/stories/trial.js');new vm.Script(trial);
+assert.ok(!/fetch\(|XMLHttpRequest|localStorage|sessionStorage|sendBeacon/.test(trial),'Trial observations must stay local');
+assert.ok(!stories.includes(String.fromCharCode(8212))&&!trial.includes(String.fromCharCode(8212)));
+console.log('Passed: ten labelled fictional stories, free-practice and paid-conditions routes, current local script, private observations and download syntax.');
