@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import {LIMITS, validateDataset, trainClassifier, normalizeFeature, drawDemo} from './learning.js';
 import {serializeClassifier, deserializeClassifier} from './project.js';
+import {releaseCamera} from './camera.js';
 
 const $ = selector => document.querySelector(selector);
 const canvas = $('#lab-preview');
@@ -39,6 +40,7 @@ function controls() {
   document.querySelectorAll('[data-lab-capture]').forEach(el=>{el.disabled=busy||!state.stream;});
   document.querySelectorAll('[data-lab-remove]').forEach(el=>{el.disabled=busy||state.classes.length<=2;});
   $('#lab-add').disabled=busy||state.classes.length>=LIMITS.classes;
+  $('#lab-start-camera').disabled=busy||Boolean(state.stream);
   $('#lab-stop-camera').disabled=!state.stream;
   $('#lab-cancel').hidden=!['recording','training','demo','upload'].includes(state.busy);
   $('#lab-save').disabled=busy||!state.head;
@@ -123,23 +125,33 @@ async function uploadSamples(item,files) {
     status('В класс «'+item.name+'» добавлено фотографий: '+added+'.'+(skipped?' Не удалось прочитать файлов: '+skipped+'. Используйте JPG, PNG или WebP.':''));
   });
 }
-function stopCamera() {
-  state.stream?.getTracks().forEach(track=>track.stop());state.stream=null;video.srcObject=null;
-  if(state.source==='camera')state.source='';
-  if(state.busy==='recording')state.cancel=true;
-  $('#lab-camera-state').textContent='Камера выключена';controls();
+function stopCamera(reason='manual') {
+  const wasCamera=state.source==='camera';
+  const released=releaseCamera(state,video);
+  if(wasCamera)drawPlaceholder('Камера выключена','Примеры сохранены');
+  $('#lab-camera-state').textContent='Камера выключена';
+  if(released)status(reason==='hidden'
+    ?'Камера освобождена при переходе в другую вкладку. Примеры и модель остались здесь. Для продолжения нажмите «Включить камеру».'
+    :'Камера освобождена для других вкладок и приложений. Примеры и обученная модель остались в этой вкладке.');
+  controls();
 }
 $('#lab-start-camera').addEventListener('click',()=>work('camera',async()=>{
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('Камера доступна на HTTPS или localhost. Можно добавить фотографии или открыть демо без камеры.');
   await encoder();
+  if(document.hidden){status('Вкладка скрыта. Включите камеру, когда вернётесь к лабораторной работе.');return;}
   if(state.stream){state.source='camera';return;}
   let stream;
   try {stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:{ideal:'environment'}},audio:false});}
   catch(error){throw new Error(error.name==='NotAllowedError'?'Доступ к камере не предоставлен. Разрешите его в настройках браузера или добавьте фотографии.':'Не удалось открыть камеру. Проверьте, доступна ли она в другом приложении, или добавьте фотографии.');}
-  try {video.srcObject=stream;await video.play();state.stream=stream;state.source='camera';$('#lab-camera-state').textContent='Камера включена. Микрофон не используется';status('Камера готова. Запишите примеры для каждого класса.');}
+  try {
+    if(document.hidden){stream.getTracks().forEach(track=>track.stop());status('Камера освобождена: вкладка скрыта. Для продолжения включите её снова.');return;}
+    video.srcObject=stream;await video.play();state.stream=stream;state.source='camera';
+    if(document.hidden){stopCamera('hidden');return;}
+    $('#lab-camera-state').textContent='Камера включена';status('Камера готова. Можно добавить примеры или проверить обученную модель. Микрофон не используется.');
+  }
   catch(error){stream.getTracks().forEach(track=>track.stop());video.srcObject=null;throw error;}
 }));
-$('#lab-stop-camera').addEventListener('click',stopCamera);
+$('#lab-stop-camera').addEventListener('click',()=>stopCamera());
 $('#lab-live').addEventListener('click',()=>{if(state.stream){state.source='camera';message('');}});
 $('#lab-cancel').addEventListener('click',()=>{state.cancel=true;message('Останавливаем текущую операцию. Уже собранные кадры останутся в наборе.');});
 $('#lab-add').addEventListener('click',()=>{if(state.busy||state.classes.length>=LIMITS.classes)return;state.classes.push(makeClass('Новый класс '+state.classes.length));changed();renderClasses();});
@@ -208,7 +220,8 @@ function frame(time) {
   requestAnimationFrame(frame);
 }
 window.addEventListener('pagehide',()=>{stopCamera();state.cancel=true;});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.busy==='recording')state.cancel=true;});
-const placeholder=canvas.getContext('2d');placeholder.fillStyle='#e7ece5';placeholder.fillRect(0,0,224,224);placeholder.fillStyle='#34586b';placeholder.font='15px Arial';placeholder.textAlign='center';placeholder.fillText('Здесь появится кадр',112,108);placeholder.fillText('из камеры или файла',112,130);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCamera('hidden');});
+function drawPlaceholder(first,second){const ctx=canvas.getContext('2d');ctx.fillStyle='#e7ece5';ctx.fillRect(0,0,224,224);ctx.fillStyle='#34586b';ctx.font='15px Arial';ctx.textAlign='center';ctx.fillText(first,112,108);ctx.fillText(second,112,130);}
+drawPlaceholder('Здесь появится кадр','из камеры или файла');
 renderClasses();renderScores();requestAnimationFrame(frame);
 status('Выберите камеру, фотографии или демо без камеры. Изображения останутся в этом браузере.');
