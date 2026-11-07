@@ -1,0 +1,4 @@
+private-assets/
+.wrangler/
+codes*.sql
+*.private.*

@@ -20,6 +20,8 @@ jobs:
       - run: npm ci
         working-directory: tools/marketing-site
       - run: node tools/marketing-site/scripts/check-site.mjs
+      - run: node tools/marketing-site/scripts/check-products.mjs
+      - run: node tools/product-delivery/test.mjs
       - run: node tools/marketing-site/scripts/check-family.mjs
       - run: node tools/marketing-site/scripts/check-support.mjs
       - uses: actions/jekyll-build-pages@v1

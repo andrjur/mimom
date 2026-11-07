@@ -1,0 +1,10 @@
+{
+  "name": "indikov-products",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "routes": [{"pattern":"indikov.ru/api/products/*","zone_name":"indikov.ru"}],
+  "assets": {"directory":"./private-assets","binding":"ASSETS","run_worker_first":true},
+  "d1_databases": [{"binding":"DB","database_name":"indikov-typist","database_id":"34bc8d24-a344-453c-b3a9-fce95c220ad4"}],
+  "observability": {"enabled":false}
+}
