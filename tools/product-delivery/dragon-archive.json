@@ -1,0 +1,10 @@
+{
+  "parts": [
+    "/dragon-part-00.bin",
+    "/dragon-part-01.bin",
+    "/dragon-part-02.bin",
+    "/dragon-part-03.bin"
+  ],
+  "bytes": 74548725,
+  "sha256": "8bef4152ca19cb04387d14c64d1977c057d894404caa28e0f887831be66b8cbb"
+}

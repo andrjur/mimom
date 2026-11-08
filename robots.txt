@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /dragon/
+Disallow: /dragon-online/
+Disallow: /api/products/
+
+Sitemap: https://indikov.ru/sitemap.xml

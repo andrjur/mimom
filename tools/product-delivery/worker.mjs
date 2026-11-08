@@ -1,3 +1,4 @@
+import {dragon} from './dragon.mjs';
 const PRODUCTS = {
   start: {asset:'/start.zip', file:'hochu-no-ne-delayu.zip'},
   ai: {asset:'/ai.zip', file:'ii-ne-poddakivay.zip'}
@@ -10,6 +11,8 @@ function reply(status, message, extra={}) {
 }
 export default {
   async fetch(request, env) {
+    const dragonResponse=await dragon(request,env);
+    if(dragonResponse)return dragonResponse;
     const url = new URL(request.url);
     // No static fallback. Every path, including workers.dev, runs through this gate.
     if (url.pathname === '/api/products/health' && request.method === 'GET') {

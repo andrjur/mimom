@@ -1,0 +1,13 @@
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import {DatabaseSync} from 'node:sqlite';
+import worker,{hash} from './worker.mjs';
+const root=path.resolve('.'),dir=path.resolve('tools/product-delivery'),db=new DatabaseSync(':memory:');
+for(const file of ['schema.sql','dragon-schema.sql'])db.exec(fs.readFileSync(path.join(dir,file),'utf8'));
+db.prepare('INSERT INTO dragon_codes(code_hash,max_uses) VALUES(?,10)').run(await hash('000011112222'));
+db.prepare('INSERT INTO dragon_comments(id,page,owner,body,image,created_at) VALUES(?,?,?,?,?,?)').run('first-image','landing','author-seed','Помодоро наоборот: пять минут работы как способ наконец начать.','first',1794126189000);
+const types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.png':'image/png','.svg':'image/svg+xml','.bin':'application/octet-stream'};
+const fileResponse=file=>fs.existsSync(file)?new Response(fs.readFileSync(file),{headers:{'Content-Type':types[path.extname(file)]||'application/octet-stream'}}):new Response('Not found',{status:404});
+const env={LOCAL_TEST:'true',DB:{prepare(sql){let args=[];return {bind(...v){args=v;return this},async first(){return db.prepare(sql).get(...args)},async all(){return {results:db.prepare(sql).all(...args)}},async run(){return db.prepare(sql).run(...args)}}}},ASSETS:{async fetch(r){const p=new URL(r.url).pathname;const file=path.join(dir,'private-assets',p);if(r.method==='HEAD')return new Response(null,{status:fs.existsSync(file)?200:404});return fileResponse(file);}}};
+http.createServer(async(req,res)=>{try{const chunks=[];for await(const c of req)chunks.push(c);const url='http://127.0.0.1:3197'+req.url;const r=new Request(url,{method:req.method,headers:req.headers,...(!['GET','HEAD'].includes(req.method)?{body:Buffer.concat(chunks)}:{})});let response;if(req.url.startsWith('/api/')||req.url.startsWith('/dragon-online/'))response=await worker.fetch(r,env);else{const p=new URL(url).pathname;response=fileResponse(path.join(root,p.endsWith('/')?p+'index.html':p));}res.writeHead(response.status,Object.fromEntries(response.headers));if(response.body){for await(const c of response.body)res.write(c);}res.end();}catch(e){res.writeHead(500);res.end(String(e));}}).listen(3197,'127.0.0.1',()=>console.log('Local: http://127.0.0.1:3197/dragon/ (isolated test code 0000-1111-2222)'));
