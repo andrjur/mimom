@@ -71,11 +71,11 @@
   <!-- Three.js + OrbitControls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-</head>
+<link rel="stylesheet" href="/assets/site-refresh.css?v=20261108"><script defer src="/assets/site-refresh.js?v=20261108"></script><meta name="description" content="3D Лаборатория: Правило левой руки и электромагнетизм. Материал на сайте Андрея Индыкова."></head>
 <body>
   <div id="ui">
     <h2>⚡ 3D-Лаборатория силы Лоренца</h2>
-    
+
     <div class="control-group">
       <label>Режим движения частицы:</label>
       <select id="modeSelect">
@@ -249,7 +249,7 @@
         // Вектор скорости поворачивается вокруг оси B (Y) на угол dTheta = -q * B * dt
         const dTheta = -q * fieldVal * dt;
         vel.applyAxisAngle(axisY, dTheta);
-        
+
         // Сила Лоренца F = q * [v x B]
         force.crossVectors(vel, B_vec).multiplyScalar(q);
       }
