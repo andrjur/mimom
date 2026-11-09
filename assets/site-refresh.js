@@ -1,4 +1,5 @@
 (()=>{
+ const analytics=document.createElement('script');analytics.defer=true;analytics.src='/assets/metrika.js?v=20261109';document.head.append(analytics);
  const today=new Date();
  if(today>=new Date('2026-11-08T00:00:00+03:00')&&today<new Date('2027-01-21T00:00:00+03:00'))document.documentElement.classList.add('festive-season');
  document.querySelectorAll('.siteNav a[href]').forEach(a=>{if(new URL(a.href,location.href).pathname===location.pathname)a.setAttribute('aria-current','page')});

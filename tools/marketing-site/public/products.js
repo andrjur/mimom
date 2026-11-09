@@ -36,6 +36,7 @@ document.querySelectorAll('[data-access-form]').forEach(form=>{
       downloadUrl=URL.createObjectURL(blob); again.href=downloadUrl;
       again.download=product==='start'?'hochu-no-ne-delayu.zip':'ii-ne-poddakivay.zip';
       result.hidden=false; status.textContent='Комплект готов. Скачивание началось. Если файл не сохранился, нажмите «Скачать ещё раз».';
+      document.dispatchEvent(new Event('product-access-ready'));
       again.click();
     }catch(exception){input.setAttribute('aria-invalid','true');error.textContent=exception.name==='AbortError'?'Загрузка заняла слишком много времени. Повторите с тем же кодом в этом браузере.':exception.message==='Failed to fetch'?'Соединение прервалось. Повторите с тем же кодом в этом браузере.':exception.message;}
     finally{clearTimeout(timer);button.disabled=false;button.textContent='Получить комплект';}
